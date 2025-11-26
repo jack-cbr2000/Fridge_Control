@@ -9,17 +9,22 @@
 #include <ArduinoOTA.h>
 #include <HTTPClient.h>
 #include <Update.h>
+#include <time.h>
 
-// GitHub OTA Configuration 
+// GitHub OTA Configuration
 #define GITHUB_OWNER "jack-cbr2000"
 #define GITHUB_REPO "Fridge_Control"
 #define CURRENT_VERSION "1.0.1"
-#define CHECK_INTERVAL_MINUTES 60 
+#define CHECK_INTERVAL_MINUTES 60
+
+// NTP Configuration
+#define NTP_SERVER "pool.ntp.org"
+#define GMT_OFFSET_SEC 0  // UTC
+#define DAYLIGHT_OFFSET_SEC 3600  // +1 hour for DST if needed
 
 // GitHub OTA variables
 unsigned long lastUpdateCheck = 0;
 bool otaUpdateInProgress = false;
-bool autoUpdatesEnabled = true;  // Can be disabled via web interface
 
 // Structure to hold GitHub release info
 struct GitHubRelease {
@@ -78,7 +83,7 @@ struct WiFiNetwork {
   bool enabled = true;
 };
 
-// Configuration structure - now supports 5 WiFi networks
+// Configuration structure - now supports 5 WiFi networks and auto-updates setting
 struct Config {
   float leftSetpoint = 4.0;
   float rightSetpoint = 4.0;
@@ -90,6 +95,7 @@ struct Config {
   float tempOffset = 0.0;
   bool leftEnabled = true;
   bool rightEnabled = true;
+  bool autoUpdatesEnabled = true;  // Configurable auto-updates setting
   WiFiNetwork wifiNetworks[5];    // 5 WiFi network slots
 
   // NTC Calibration data (two-point calibration)
@@ -357,7 +363,8 @@ bool verifyFirmwareIntegrity() {
 bool rollbackFirmware() {
   // In a production system, you might keep a backup of the previous firmware
   // For now, just disable auto-updates to prevent further issues
-  autoUpdatesEnabled = false;
+  config.autoUpdatesEnabled = false;
+  saveConfig();
   Serial.println("⚠️ Firmware rollback initiated - auto-updates disabled");
   return true;
 }
@@ -385,7 +392,7 @@ String getOtaStatusJSON() {
   DynamicJsonDocument doc(512);
 
   doc["currentVersion"] = CURRENT_VERSION;
-  doc["autoUpdatesEnabled"] = autoUpdatesEnabled;
+  doc["autoUpdatesEnabled"] = config.autoUpdatesEnabled;
   doc["updateInProgress"] = otaUpdateInProgress;
   doc["lastChecked"] = lastUpdateCheck;
   doc["githubOwner"] = GITHUB_OWNER;
@@ -553,7 +560,14 @@ void setup() {
   if (!connected) {
     Serial.println("⚠ No WiFi connection - AP mode only");
   }
-  
+
+  // Configure NTP if WiFi is connected
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\n--- NTP Setup ---");
+    configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC, NTP_SERVER);
+    Serial.println("✓ NTP configured - timestamps will use real time");
+  }
+
   delay(500); // Give WiFi time to stabilize
   
   // Display WiFi status
@@ -675,7 +689,7 @@ void loop() {
   }
 
   // Check for firmware updates every CHECK_INTERVAL_MINUTES
-  if (WiFi.status() == WL_CONNECTED && autoUpdatesEnabled &&
+  if (WiFi.status() == WL_CONNECTED && config.autoUpdatesEnabled &&
       millis() - lastUpdateCheck > (CHECK_INTERVAL_MINUTES * 60UL * 1000UL) &&
       !otaUpdateInProgress &&
       !state.compressorOn &&  // Only update when compressor is OFF (safe)
@@ -1054,6 +1068,25 @@ void setupWebServer() {
         state.systemEnabled = false;
       }
       server.send(200, "application/json", "{\"success\":true}");
+    }
+  });
+
+  // Auto-updates toggle endpoint
+  server.on("/api/ota/auto-updates", HTTP_POST, []() {
+    if (server.hasArg("plain")) {
+      DynamicJsonDocument doc(128);
+      deserializeJson(doc, server.arg("plain"));
+
+      if (doc.containsKey("enabled")) {
+        config.autoUpdatesEnabled = doc["enabled"];
+        saveConfig();
+        server.send(200, "application/json", "{\"success\":true,\"autoUpdatesEnabled\":" + String(config.autoUpdatesEnabled ? "true" : "false") + "}");
+        Serial.printf("Auto-updates %s\n", config.autoUpdatesEnabled ? "enabled" : "disabled");
+      } else {
+        server.send(400, "application/json", "{\"error\":\"Missing enabled field\"}");
+      }
+    } else {
+      server.send(400, "application/json", "{\"error\":\"No data\"}");
     }
   });
 
