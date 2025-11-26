@@ -11,6 +11,13 @@
 #include <Update.h>
 #include <time.h>
 
+// Embedded HTML files (stored in flash memory)
+#include "html_index.h"
+#include "html_basic.h"
+#include "html_manual.h"
+#include "html_charts.h"
+#include "html_settings.h"
+
 // GitHub OTA Configuration
 #define GITHUB_OWNER "jack-cbr2000"
 #define GITHUB_REPO "Fridge_Control"
@@ -443,37 +450,20 @@ void setup() {
   EEPROM.begin(1024);
   loadConfig();
   
-  // Initialize LittleFS with detailed diagnostics
+  // Initialize LittleFS (optional, for compatibility)
+  if (!LittleFS.begin(false)) {
+    Serial.println("LittleFS initialization failed - this is OK since we use embedded web files");
+  } else {
+    Serial.println("LittleFS initialized (optional)");
+  }
+
   Serial.println("\n================================");
   Serial.println("🌐 DUAL ZONE FRIDGE CONTROLLER");
   Serial.println("================================");
-  
-  Serial.print("Initializing LittleFS... ");
-  if (!LittleFS.begin(false)) {  // Changed to false - don't auto-format!
-    Serial.println("❌ FAILED!");
-    Serial.println("⚠️ CRITICAL: Web pages will not load!");
-    Serial.println("📁 Solution: Upload filesystem using PlatformIO > Upload Filesystem Image");
-  } else {
-    Serial.println("✓ SUCCESS");
-    
-    // Verify HTML files exist
-    Serial.println("\nVerifying HTML files:");
-    String files[] = {"/index.html", "/basic.html", "/manual.html", "/charts.html", "/settings.html"};
-    bool allFilesOK = true;
-    for (int i = 0; i < 5; i++) {
-      File f = LittleFS.open(files[i], "r");
-      if (f) {
-        Serial.printf("  ✓ %s (%d bytes)\n", files[i].c_str(), f.size());
-        f.close();
-      } else {
-        Serial.printf("  ❌ %s NOT FOUND!\n", files[i].c_str());
-        allFilesOK = false;
-      }
-    }
-    if (!allFilesOK) {
-      Serial.println("⚠️ Some files missing - upload filesystem!");
-    }
-  }
+  Serial.println("🎨 Using EMBEDDED WEB INTERFACE");
+  Serial.println("   Web files are served from flash memory");
+  Serial.println("   Updates via OTA will include new UI automatically!");
+  Serial.println("================================");
 
   // Initialize WiFi - AP mode + STA mode
   Serial.println("\nInitializing WiFi...");
@@ -1418,51 +1408,18 @@ String getMainPage() {
 }
 
 String getBasicPage() {
-  File file = LittleFS.open("/basic.html", "r");
-  if (!file) {
-    Serial.println("Failed to open /basic.html from LittleFS");
-    return "<html><body><h1>File Not Found</h1><p>Could not load basic.html from LittleFS.</p><p>Please upload filesystem image!</p></body></html>";
-  }
-
-  String content = "";
-  while (file.available()) {
-    content += (char)file.read();
-  }
-  file.close();
-
-  return content;
+  Serial.println("Serving embedded basic.html");
+  return FPSTR(HTML_BASIC);
 }
 
 String getManualPage() {
-  File file = LittleFS.open("/manual.html", "r");
-  if (!file) {
-    Serial.println("Failed to open /manual.html from LittleFS");
-    return "<html><body><h1>File Not Found</h1><p>Could not load manual.html from LittleFS.</p><p>Please upload filesystem image!</p></body></html>";
-  }
-
-  String content = "";
-  while (file.available()) {
-    content += (char)file.read();
-  }
-  file.close();
-
-  return content;
+  Serial.println("Serving embedded manual.html");
+  return FPSTR(HTML_MANUAL);
 }
 
 String getChartsPage() {
-  File file = LittleFS.open("/charts.html", "r");
-  if (!file) {
-    Serial.println("Failed to open /charts.html from LittleFS");
-    return "<html><body><h1>File Not Found</h1><p>Could not load charts.html from LittleFS.</p><p>Please upload filesystem image!</p></body></html>";
-  }
-
-  String content = "";
-  while (file.available()) {
-    content += (char)file.read();
-  }
-  file.close();
-
-  return content;
+  Serial.println("Serving embedded charts.html");
+  return FPSTR(HTML_CHARTS);
 }
 
 String getSettingsPage() {
