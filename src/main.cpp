@@ -93,8 +93,8 @@ struct Config {
   WiFiNetwork wifiNetworks[5];    // 5 WiFi network slots
 
   // Backward compatibility - single network fields (now deprecated)
-  char old_ssid[32] = "TP-Link-Kelly";
-  char old_password[32] = "Jah1976!";
+  char old_ssid[32] = "";
+  char old_password[32] = "";
 };
 
 // System state
