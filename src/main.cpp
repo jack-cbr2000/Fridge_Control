@@ -13,7 +13,7 @@
 // GitHub OTA Configuration - Update these for your repository!
 #define GITHUB_OWNER "jack-cbr2000"
 #define GITHUB_REPO "Fridge_Control"
-#define CURRENT_VERSION "1.0.0"
+#define CURRENT_VERSION "1.0.1"
 #define CHECK_INTERVAL_MINUTES 60  // Check every hour
 
 // GitHub OTA variables
@@ -65,7 +65,7 @@ int logCount = 0; // Number of valid entries
 #define SOLENOID_PIN 2
 #define LED_PIN 5
 
-// NTC thermistor constants (10K NTC)
+// NTC thermistor constants (2.5k NTC)
 #define THERMISTOR_NOMINAL 2500
 #define TEMPERATURE_NOMINAL 25
 #define BCOEFFICIENT 5000
@@ -91,6 +91,18 @@ struct Config {
   bool leftEnabled = true;
   bool rightEnabled = true;
   WiFiNetwork wifiNetworks[5];    // 5 WiFi network slots
+
+  // NTC Calibration data (two-point calibration)
+  bool ntcCalibrated = false;
+  float calPoint1Temp = 25.0;     // Temperature for first calibration point (°C)
+  float calPoint1ResistanceLeft = 2500;  // Resistance for left sensor at point 1
+  float calPoint1ResistanceRight = 2500; // Resistance for right sensor at point 1
+  float calPoint2Temp = 0.0;      // Temperature for second calibration point (°C)
+  float calPoint2ResistanceLeft = 0;     // Resistance for left sensor at point 2
+  float calPoint2ResistanceRight = 0;    // Resistance for right sensor at point 2
+  float customBCoefficient = 0;   // Calculated beta coefficient (when calibrated)
+  float customNominalTemp = 0;    // Custom nominal temperature (when calibrated)
+  float customNominalResistance = 0;   // Custom nominal resistance at nominal temp
 
   // Backward compatibility - single network fields (now deprecated)
   char old_ssid[32] = "";
@@ -143,6 +155,8 @@ void stopCompressor();
 void switchZone(int zone);
 void startCompressor(int zone);
 String getMainPage();
+void calculateNTCBeta();
+float readNTCCalibrated(int pin, float avgResistanceLeft, float avgResistanceRight, bool isLeftSensor);
 
 // GitHub OTA Implementation
 GitHubRelease checkForUpdates();
@@ -418,8 +432,8 @@ void setup() {
   digitalWrite(SOLENOID_PIN, LOW);    // Left zone (default)
   digitalWrite(LED_PIN, LOW);
   
-  // Initialize EEPROM and load config
-  EEPROM.begin(512);
+  // Initialize EEPROM and load config - increased size for calibration data
+  EEPROM.begin(1024);
   loadConfig();
   
   // Initialize LittleFS with detailed diagnostics
@@ -698,23 +712,68 @@ void loop() {
   delay(100);
 }
 
+// Calculate Beta coefficient from two-point calibration
+void calculateNTCBeta() {
+  if (config.calPoint2ResistanceLeft > 0 && config.calPoint2ResistanceRight > 0) {
+    // Calculate beta for left sensor: B = ln(R1/R2) / (1/T1 - 1/T2)
+    float T1 = config.calPoint1Temp + 273.15;  // Convert to Kelvin
+    float T2 = config.calPoint2Temp + 273.15;
+    float R1 = config.calPoint1ResistanceLeft;
+    float R2 = config.calPoint2ResistanceLeft;
+
+    float beta = log(R1 / R2) / (1.0 / T1 - 1.0 / T2);
+    config.customBCoefficient = beta;
+
+    // Use the higher temperature point as nominal
+    if (config.calPoint1Temp >= config.calPoint2Temp) {
+      config.customNominalTemp = config.calPoint1Temp;
+      config.customNominalResistance = config.calPoint1ResistanceLeft;
+    } else {
+      config.customNominalTemp = config.calPoint2Temp;
+      config.customNominalResistance = config.calPoint2ResistanceLeft;
+    }
+
+    config.ntcCalibrated = true;
+    Serial.printf("NTC calibration completed: Beta=%.1f, Nominal R=%.1f at %.1f°C\n",
+      config.customBCoefficient, config.customNominalResistance, config.customNominalTemp);
+  }
+}
+
+// Read NTC with optional custom calibration
 float readNTC(int pin) {
   int reading = analogRead(pin);
   float resistance = SERIES_RESISTOR * (4095.0 / reading - 1.0);
 
   // Debug output
-  Serial.printf("NTC Pin %d: ADC=%d, Resistance=%.1f ohm, ", pin, reading, resistance);
+  Serial.printf("NTC Pin %d: ADC=%d, Resistance=%.1f ohm", pin, reading, resistance);
 
-  float steinhart = resistance / THERMISTOR_NOMINAL;
-  steinhart = log(steinhart);
-  steinhart /= BCOEFFICIENT;
-  steinhart += 1.0 / (TEMPERATURE_NOMINAL + 273.15);
-  steinhart = 1.0 / steinhart;
-  steinhart -= 273.15;
+  float finalTemp;
 
-  float finalTemp = steinhart + config.tempOffset;
-  Serial.printf("Computed Temp=%.2f°C (raw:%.2f), Offset=%.1f\n", finalTemp, steinhart, config.tempOffset);
+  if (config.ntcCalibrated) {
+    // Use custom calibrated values
+    float steinhart = resistance / config.customNominalResistance;
+    steinhart = log(steinhart);
+    steinhart /= config.customBCoefficient;
+    steinhart += 1.0 / (config.customNominalTemp + 273.15);
+    steinhart = 1.0 / steinhart;
+    steinhart -= 273.15;
 
+    finalTemp = steinhart + config.tempOffset;
+    Serial.printf(" Calibrated: %.2f°C (Beta=%.1f)", finalTemp, config.customBCoefficient);
+  } else {
+    // Use default values
+    float steinhart = resistance / THERMISTOR_NOMINAL;
+    steinhart = log(steinhart);
+    steinhart /= BCOEFFICIENT;
+    steinhart += 1.0 / (TEMPERATURE_NOMINAL + 273.15);
+    steinhart = 1.0 / steinhart;
+    steinhart -= 273.15;
+
+    finalTemp = steinhart + config.tempOffset;
+    Serial.printf(" Default: %.2f°C (raw:%.2f, offset:%.1f)", finalTemp, steinhart, config.tempOffset);
+  }
+
+  Serial.println();
   return finalTemp;
 }
 
@@ -1190,6 +1249,123 @@ server.on("/api/manual/compressor", HTTP_POST, []() {
     serializeJson(doc, output);
     server.send(200, "application/json", output);
   });
+
+  // NTC Calibration endpoints
+  server.on("/api/calibration/point1", HTTP_POST, []() {
+    if (server.hasArg("plain")) {
+      DynamicJsonDocument doc(128);
+      deserializeJson(doc, server.arg("plain"));
+
+      if (doc.containsKey("actualTemp")) {
+        float actualTemp = doc["actualTemp"];
+
+        // Record resistances at current readings
+        int leftReading = analogRead(NTC_LEFT_PIN);
+        int rightReading = analogRead(NTC_RIGHT_PIN);
+
+        config.calPoint1ResistanceLeft = SERIES_RESISTOR * (4095.0 / leftReading - 1.0);
+        config.calPoint1ResistanceRight = SERIES_RESISTOR * (4095.0 / rightReading - 1.0);
+        config.calPoint1Temp = actualTemp;
+
+        saveConfig();
+        Serial.printf("Calibration Point 1 set: %.1f°C, R_left=%.1f, R_right=%.1f\n",
+          actualTemp, config.calPoint1ResistanceLeft, config.calPoint1ResistanceRight);
+
+        server.send(200, "application/json", "{\"success\":true,\"point\":1,\"resistanceLeft\":" +
+          String(config.calPoint1ResistanceLeft) + ",\"resistanceRight\":" +
+          String(config.calPoint1ResistanceRight) + "}");
+      } else {
+        server.send(400, "application/json", "{\"error\":\"Missing actualTemp\"}");
+      }
+    } else {
+      server.send(400, "application/json", "{\"error\":\"No data\"}");
+    }
+  });
+
+  server.on("/api/calibration/point2", HTTP_POST, []() {
+    if (server.hasArg("plain")) {
+      DynamicJsonDocument doc(128);
+      deserializeJson(doc, server.arg("plain"));
+
+      if (doc.containsKey("actualTemp")) {
+        float actualTemp = doc["actualTemp"];
+
+        // Record resistances at current readings
+        int leftReading = analogRead(NTC_LEFT_PIN);
+        int rightReading = analogRead(NTC_RIGHT_PIN);
+
+        config.calPoint2ResistanceLeft = SERIES_RESISTOR * (4095.0 / leftReading - 1.0);
+        config.calPoint2ResistanceRight = SERIES_RESISTOR * (4095.0 / rightReading - 1.0);
+        config.calPoint2Temp = actualTemp;
+
+        // Calculate beta coefficient
+        calculateNTCBeta();
+        saveConfig();
+
+        Serial.printf("Calibration Point 2 set: %.1f°C, R_left=%.1f, R_right=%.1f\n",
+          actualTemp, config.calPoint2ResistanceLeft, config.calPoint2ResistanceRight);
+
+        String response = "{\"success\":true,\"point\":2,\"calibrated\":" +
+          String(config.ntcCalibrated ? "true" : "false") + ",\"beta\":" +
+          String(config.customBCoefficient, 1) + ",\"nominalTemp\":" +
+          String(config.customNominalTemp, 1) + ",\"nominalResistance\":" +
+          String(config.customNominalResistance, 1) + "}";
+
+        server.send(200, "application/json", response);
+      } else {
+        server.send(400, "application/json", "{\"error\":\"Missing actualTemp\"}");
+      }
+    } else {
+      server.send(400, "application/json", "{\"error\":\"No data\"}");
+    }
+  });
+
+  server.on("/api/calibration/status", HTTP_GET, []() {
+    DynamicJsonDocument doc(256);
+    doc["ntcCalibrated"] = config.ntcCalibrated;
+
+    if (config.calPoint1ResistanceLeft > 0) {
+      doc["point1"]["temp"] = config.calPoint1Temp;
+      doc["point1"]["resistanceLeft"] = config.calPoint1ResistanceLeft;
+      doc["point1"]["resistanceRight"] = config.calPoint1ResistanceRight;
+    } else {
+      doc["point1"] = nullptr;
+    }
+
+    if (config.calPoint2ResistanceLeft > 0) {
+      doc["point2"]["temp"] = config.calPoint2Temp;
+      doc["point2"]["resistanceLeft"] = config.calPoint2ResistanceLeft;
+      doc["point2"]["resistanceRight"] = config.calPoint2ResistanceRight;
+    } else {
+      doc["point2"] = nullptr;
+    }
+
+    if (config.ntcCalibrated) {
+      doc["customBeta"] = config.customBCoefficient;
+      doc["nominalTemp"] = config.customNominalTemp;
+      doc["nominalResistance"] = config.customNominalResistance;
+    }
+
+    String output;
+    serializeJson(doc, output);
+    server.send(200, "application/json", output);
+  });
+
+  server.on("/api/calibration/reset", HTTP_POST, []() {
+    config.ntcCalibrated = false;
+    config.calPoint1ResistanceLeft = 2500;
+    config.calPoint1ResistanceRight = 2500;
+    config.calPoint2ResistanceLeft = 0;
+    config.calPoint2ResistanceRight = 0;
+    config.customBCoefficient = 0;
+    config.customNominalTemp = 0;
+    config.customNominalResistance = 0;
+
+    saveConfig();
+    Serial.println("NTC calibration reset to defaults");
+
+    server.send(200, "application/json", "{\"success\":true,\"message\":\"Calibration reset\"}");
+  });
 }
 
 String getMainPage() {
@@ -1398,6 +1574,26 @@ void loadConfig() {
   if (config.rightEnabled != true && config.rightEnabled != false) {
     config.rightEnabled = true;
     factoryDefaultsLoaded = true;
+  }
+
+  // Initialize calibration defaults if not properly set
+  if (config.calPoint1ResistanceLeft <= 0 || isnan(config.calPoint1ResistanceLeft)) {
+    config.calPoint1ResistanceLeft = 2500;
+    config.calPoint1ResistanceRight = 2500;
+    config.calPoint1Temp = 25.0;
+  }
+
+  if (config.calPoint2ResistanceLeft >= 0 && isnan(config.calPoint2ResistanceLeft)) {
+    config.calPoint2ResistanceLeft = 0;
+    config.calPoint2ResistanceRight = 0;
+    config.calPoint2Temp = 0.0;
+  }
+
+  if (isnan(config.customBCoefficient) || config.customBCoefficient <= 0) {
+    config.customBCoefficient = 0;
+    config.customNominalTemp = 0;
+    config.customNominalResistance = 0;
+    config.ntcCalibrated = false;
   }
 
   if (factoryDefaultsLoaded) {

@@ -552,6 +552,62 @@ body {
 
         <div class="advanced-settings" style="margin-top: 2rem;">
             <div class="advanced-header">
+                <h3 class="advanced-title">NTC Temperature Calibration</h3>
+            </div>
+
+            <div class="wifi-config">
+                <p style="color: #cbd5e1; margin-bottom: 1rem;">
+                    Two-point calibration for accurate beta coefficient calculation. Leave fridge door open for room temperature reading, then place sensors in ice water or use freezer for cold temperature.
+                </p>
+
+                <div id="calibrationStatus" style="padding: 1rem; border-radius: 8px; background: rgba(255, 255, 255, 0.05); margin-bottom: 1rem;">
+                    <strong>Status:</strong> <span id="calStatusText">Loading...</span><br>
+                    <strong>Calibration:</strong> <span id="isCalibrated">No</span><br>
+                    <div id="calibrationDetails" style="display: none;">
+                        <strong>Beta:</strong> <span id="betaValue">-</span><br>
+                        <strong>Nominal Temp:</strong> <span id="nominalTemp">-</span>°C<br>
+                        <strong>Nominal Resistance:</strong> <span id="nominalResistance">-</span> ohms
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="control-group">
+                        <label class="control-label">Point 1 Temp (°C)</label>
+                        <input type="number" class="control-input" id="point1Temp" placeholder="25.0" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Point 2 Temp (°C)</label>
+                        <input type="number" class="control-input" id="point2Temp" placeholder="0.0" step="0.1">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <button class="btn btn-success" onclick="setCalibrationPoint(1)" id="point1Btn">
+                        Set Point 1 (Room Temp)
+                    </button>
+                    <button class="btn btn-warning" onclick="setCalibrationPoint(2)" id="point2Btn">
+                        Set Point 2 (Cold Temp)
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-primary" onclick="resetCalibration()">
+                        Reset Calibration
+                    </button>
+                </div>
+
+                <div id="point1Info" style="padding: 0.5rem; background: rgba(34, 197, 94, 0.1); border-radius: 4px; margin-top: 0.5rem; display: none;">
+                    Point 1 recorded at <span id="point1RecordedTemp">-</span>°C (R_left: <span id="point1RLeft">-</span>, R_right: <span id="point1RRight">-</span>)
+                </div>
+
+                <div id="point2Info" style="padding: 0.5rem; background: rgba(245, 158, 11, 0.1); border-radius: 4px; margin-top: 0.5rem; display: none;">
+                    Point 2 recorded at <span id="point2RecordedTemp">-</span>°C (R_left: <span id="point2RLeft">-</span>, R_right: <span id="point2RRight">-</span>)
+                </div>
+            </div>
+        </div>
+
+        <div class="advanced-settings" style="margin-top: 2rem;">
+            <div class="advanced-header">
                 <h3 class="advanced-title">Firmware Updates</h3>
             </div>
 
@@ -1114,15 +1170,144 @@ body {
             }
         }
 
+        // NTC Calibration functions
+        function updateCalibrationStatus() {
+            fetch('/api/calibration/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('isCalibrated').textContent = data.ntcCalibrated ? 'Active' : 'Not Active';
+
+                    if (data.ntcCalibrated) {
+                        document.getElementById('calStatusText').textContent = 'Calibrated with calculated beta';
+                        document.getElementById('calibrationDetails').style.display = 'block';
+                        document.getElementById('betaValue').textContent = data.customBeta ? data.customBeta.toFixed(1) : '-';
+                        document.getElementById('nominalTemp').textContent = data.nominalTemp ? data.nominalTemp.toFixed(1) : '-';
+                        document.getElementById('nominalResistance').textContent = data.nominalResistance ? data.nominalResistance.toFixed(0) : '-';
+                    } else {
+                        document.getElementById('calStatusText').textContent = 'Using default calibration';
+                        document.getElementById('calibrationDetails').style.display = 'none';
+                    }
+
+                    // Update point info displays
+                    if (data.point1) {
+                        document.getElementById('point1Info').style.display = 'block';
+                        document.getElementById('point1RecordedTemp').textContent = data.point1.temp.toFixed(1);
+                        document.getElementById('point1RLeft').textContent = data.point1.resistanceLeft.toFixed(1);
+                        document.getElementById('point1RRight').textContent = data.point1.resistanceRight.toFixed(1);
+                        document.getElementById('point1Temp').value = data.point1.temp.toFixed(1);
+                    } else {
+                        document.getElementById('point1Info').style.display = 'none';
+                    }
+
+                    if (data.point2) {
+                        document.getElementById('point2Info').style.display = 'block';
+                        document.getElementById('point2RecordedTemp').textContent = data.point2.temp.toFixed(1);
+                        document.getElementById('point2RLeft').textContent = data.point2.resistanceLeft.toFixed(1);
+                        document.getElementById('point2RRight').textContent = data.point2.resistanceRight.toFixed(1);
+                        document.getElementById('point2Temp').textContent = data.point2.temp.toFixed(1);
+                    } else {
+                        document.getElementById('point2Info').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading calibration status:', error);
+                    document.getElementById('calStatusText').textContent = 'Error loading status';
+                });
+        }
+
+        function setCalibrationPoint(point) {
+            const tempInput = document.getElementById(point === 1 ? 'point1Temp' : 'point2Temp');
+            const actualTemp = parseFloat(tempInput.value);
+
+            if (isNaN(actualTemp)) {
+                alert(`Please enter a valid temperature for Point ${point}`);
+                return;
+            }
+
+            if (point === 2) {
+                // Verify point 1 is set
+                const point1Temp = document.getElementById('point1Temp').value;
+                if (!point1Temp || isNaN(parseFloat(point1Temp))) {
+                    alert('Please set Point 1 first');
+                    return;
+                }
+
+                // Check temperature difference is reasonable
+                const point1Val = parseFloat(point1Temp);
+                if (Math.abs(actualTemp - point1Val) < 10) {
+                    alert('Point 2 should be at least 10°C different from Point 1 for accurate calibration');
+                    return;
+                }
+            }
+
+            const btn = document.getElementById(point === 1 ? 'point1Btn' : 'point2Btn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = `Setting Point ${point}...`;
+
+            fetch(`/api/calibration/point${point}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({actualTemp: actualTemp})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (point === 2 && data.calibrated) {
+                        alert(`Calibration completed!\n\nCalculated Beta: ${data.beta}\nNominal Temp: ${data.nominalTemp}°C\nNominal Resistance: ${data.nominalResistance} ohms`);
+                    } else {
+                        alert(`Point ${point} set successfully!\nResistance recorded: L:${data.resistanceLeft.toFixed(1)} R:${data.resistanceRight.toFixed(1)} ohms`);
+                    }
+                    updateCalibrationStatus();
+                } else {
+                    alert('Failed to set calibration point');
+                }
+            })
+            .catch(error => {
+                console.error('Error setting calibration point:', error);
+                alert('Error setting calibration point');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            });
+        }
+
+        function resetCalibration() {
+            if (confirm('Reset all calibration data to defaults? This will use the standard NTC constants.')) {
+                fetch('/api/calibration/reset', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Calibration reset to defaults');
+                        updateCalibrationStatus();
+                        document.getElementById('point1Temp').value = '';
+                        document.getElementById('point2Temp').value = '';
+                    } else {
+                        alert('Failed to reset calibration');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error resetting calibration:', error);
+                    alert('Error resetting calibration');
+                });
+            }
+        }
+
         // Load WiFi status on page load
         window.addEventListener('load', () => {
             updateWiFiStatus();
             loadConfiguredNetworks();
             loadOTAStatus();
+            updateCalibrationStatus();
             // Update WiFi status every 10 seconds
             setInterval(updateWiFiStatus, 10000);
             // Update OTA status every 30 seconds
             setInterval(loadOTAStatus, 30000);
+            // Update calibration status every 15 seconds
+            setInterval(updateCalibrationStatus, 15000);
         });
     </script>
 </body>

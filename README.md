@@ -1,6 +1,6 @@
-# Fridge_Control - ESP32 Dual Zone Fridge Controller with OTA Updates
+# Fridge_Control - ESP32 Dual Zone Fridge Controller with OTA Updates & Temperature Calibration
 
-This ESP32-based project implements a dual-zone refrigerator controller with advanced web interface, temperature logging with interactive charts, and **automatic over-the-air firmware updates** through GitHub.
+This ESP32-based project implements a dual-zone refrigerator controller with advanced web interface, temperature logging with interactive charts, **automatic over-the-air firmware updates** through GitHub, and **professional two-point temperature calibration** for precise NTC thermistor accuracy.
 
 ## Features
 
@@ -8,12 +8,13 @@ This ESP32-based project implements a dual-zone refrigerator controller with adv
 - **Web Interface**: Responsive web UI accessible via WiFi for monitoring and configuration
 - **Temperature Logging**: Real-time charts showing temperature history for both zones
 - **OTA Firmware Updates**: Automatic updates through GitHub Actions (safe updates only when compressor is OFF)
+- **NTC Temperature Calibration**: Two-point calibration system for accurate beta coefficient calculation and precise temperature readings
 - **Automatic Control**: Intelligent cooling logic with configurable parameters (hysteresis, timing, setpoints)
 - **Manual Override**: Full manual control of compressor and zone switching for maintenance/diagnosis
-- **Temperature Sensing**: NTC thermistor sensors for accurate temperature monitoring
+- **Temperature Sensing**: NTC thermistor sensors with custom calibration for accurate temperature monitoring
 - **Relay Control**: 2-relay system for compressor and solenoid valve operation
 - **System Status**: Real-time status monitoring and error handling
-- **Configuration Storage**: Persistent settings stored in EEPROM
+- **Configuration Storage**: Persistent settings stored in EEPROM (expanded for calibration data)
 - **WiFi Access Point**: Built-in hotspot for initial setup and standalone operation
 - **OTA Updates**: Over-the-air firmware updates via ArduinoOTA
 - **Testing Mode**: Hardware-validated testing mode using potentiometer for temperature simulation
@@ -165,6 +166,52 @@ Relay Contacts (COM/NO/NC):
 - **Web Interface**: `http://fridge.local` or device IP
 - **Direct IP**: Shown in Serial monitor
 
+## NTC Temperature Calibration (New!)
+
+The controller features a sophisticated two-point calibration system for NTC thermistor sensors, providing much more accurate temperature readings than generic factory constants.
+
+### Why Calibration Matters
+- **Factory Defaults**: Standard NTC values provide approximate temperatures but can have 2-5°C error
+- **Custom Calibration**: Calculates exact beta coefficient for your specific thermistors
+- **Better Accuracy**: Provides precise temperature control for food preservation
+
+### Calibration Process
+
+1. **Point 1 - Room Temperature**:
+   - Leave refrigerator door open so both NTC sensors reach room temperature
+   - Navigate to Settings → NTC Temperature Calibration section
+   - Enter your current room temperature (e.g., 25.0°C) in the "Point 1 Temp" field
+   - Click "Set Point 1 (Room Temp)" - the system will record resistance values
+
+2. **Point 2 - Cold Temperature**:
+   - After at least 15 minutes, expose NTC sensors to a significantly different temperature
+   - Options: Ice water (0°C), freezer compartment, or measured cold source
+   - Enter the actual cold temperature in "Point 2 Temp" field
+   - Click "Set Point 2 (Cold Temp)" - completes calibration automatically
+
+### Automatic Calculations
+The system calculates:
+- **Beta Coefficient**: Using `B = ln(R₁/R₂) / (1/T₁ - 1/T₂)`
+- **Nominal Resistance**: Reference resistance at calculated nominal temperature
+- **Enhanced Accuracy**: Correct temperatures across full operating range (0°C to 30°C)
+
+### Calibration Status
+- **Active**: Shows calculated beta coefficient and nominal parameters
+- **Default**: Falls back to standard NTC constants (β = 5000, nominal = 25°C)
+- **Real-time Updates**: Web interface displays current calibration status
+
+### Best Practices
+- **Temperature Difference**: Ensure at least 10°C difference between point 1 and 2
+- **Stable Conditions**: Allow temperatures to stabilize before recording points
+- **Accurate Reference**: Use calibrated thermometer for reference temperatures
+- **Periodic Recalibration**: Recalibrate yearly or if temperature accuracy seems off
+
+### Technical Details
+- **Formula**: Enhanced Steinhart-Hart equation with custom beta coefficient
+- **EEPROM Storage**: Calibration data persists through power cycles
+- **Fallback Protection**: Automatically uses defaults if calibration invalid
+- **Sensor Matching**: Both NTC sensors calibrated together for consistency
+
 ## Development Roadmap
 
 ✅ **Completed Features**:
@@ -173,6 +220,7 @@ Relay Contacts (COM/NO/NC):
 - [x] Temperature logging with charts
 - [x] Multi-network WiFi support
 - [x] GitHub OTA firmware updates
+- [x] NTC temperature calibration system
 
 ## License
 
