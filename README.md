@@ -125,23 +125,7 @@ Relay Contacts (COM/NO/NC):
    pio run -t uploadfs
    ```
 
-### Arduino IDE
-
-1. **Install Arduino IDE 2.x**: https://www.arduino.cc/en/software
-
-2. **Add ESP32 Board Support**:
-   - File → Preferences → Additional Boards Manager URLs: `https://dl.espressif.com/dl/package_esp32_index.json`
-   - Tools → Board → Boards Manager → Install "ESP32 by Espressif Systems"
-
-3. **Install Required Libraries**:
-   - ArduinoJson, ESPmDNS, DNSServer, ESP32Servo (if needed)
-
-4. **Load Files**:
-   - Open `src/main.cpp`
-   - Select ESP32 board and correct COM port
-   - Upload
-
-## OTA Firmware Updates (New!)
+## OTA Firmware Updates 
 
 ### Automatic Updates
 - **Safe Updates**: Only updates when compressor is OFF (prevents fridge damage)
