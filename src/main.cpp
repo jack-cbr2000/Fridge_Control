@@ -21,7 +21,7 @@
 // GitHub OTA Configuration
 #define GITHUB_OWNER "jack-cbr2000"
 #define GITHUB_REPO "Fridge_Control"
-#define CURRENT_VERSION "1.0.2"
+#define CURRENT_VERSION "1.0.3"
 #define CHECK_INTERVAL_MINUTES 60
 
 // NTP Configuration
@@ -216,15 +216,29 @@ GitHubRelease checkForUpdates() {
   int httpResponseCode = http.GET();
 
   if (httpResponseCode == 200) {
-    String payload = http.getString();
+    // Use streaming to avoid loading entire response into memory
+    WiFiClient* stream = http.getStreamPtr();
+    
+    // Create a filter to only parse the fields we need (saves memory)
+    StaticJsonDocument<200> filter;
+    filter["tag_name"] = true;
+    filter["body"] = true;
+    JsonObject filterAssets = filter["assets"].createNestedObject();
+    filterAssets["name"] = true;
+    filterAssets["browser_download_url"] = true;
 
-    DynamicJsonDocument doc(4096);
-    DeserializationError error = deserializeJson(doc, payload);
+    // Parse with filter - uses much less memory than parsing everything
+    DynamicJsonDocument doc(3072);
+    DeserializationError error = deserializeJson(doc, *stream, DeserializationOption::Filter(filter));
 
     if (error) {
       Serial.printf("❌ JSON parse error: %s\n", error.c_str());
+      Serial.printf("   Memory usage: %d bytes\n", doc.memoryUsage());
+      http.end();
       return result;
     }
+
+    Serial.printf("✓ JSON parsed, memory used: %d bytes\n", doc.memoryUsage());
 
     // Extract firmware download URL from assets
     String firmwareUrl = "";
@@ -244,12 +258,17 @@ GitHubRelease checkForUpdates() {
     result.downloadUrl = firmwareUrl;
     result.releaseNotes = doc["body"].as<String>();
 
-    // Check if version is newer (simple string comparison for now)
+    // Check if version is newer
     result.isNewer = isVersionNewer(result.version, CURRENT_VERSION);
 
     Serial.printf("📋 Latest version: %s\n", result.version.c_str());
     Serial.printf("📱 Current version: %s\n", CURRENT_VERSION);
     Serial.printf("✅ Update available: %s\n", result.isNewer ? "YES" : "NO");
+    if (firmwareUrl.length() > 0) {
+      Serial.printf("📥 Download URL: %s\n", firmwareUrl.c_str());
+    } else {
+      Serial.println("⚠️ No firmware asset found in release");
+    }
 
   } else {
     Serial.printf("❌ HTTP error checking updates: %d\n", httpResponseCode);
@@ -275,14 +294,28 @@ bool downloadAndInstallFirmware(String firmwareUrl) {
   HTTPClient http;
   Serial.printf("📡 Downloading from: %s\n", firmwareUrl.c_str());
 
+  // Configure HTTP client to follow redirects (GitHub uses redirects for asset downloads)
+  http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
+  http.setRedirectLimit(5);  // Allow up to 5 redirects
+  
   http.begin(firmwareUrl);
   http.addHeader("User-Agent", "ESP32-FridgeController/" + String(CURRENT_VERSION));
+  http.addHeader("Accept", "application/octet-stream");  // Request binary data
   http.setTimeout(60000);  // 60 second timeout for large downloads
 
+  Serial.println("📡 Sending HTTP GET request...");
   int httpResponseCode = http.GET();
+  Serial.printf("📡 HTTP Response: %d\n", httpResponseCode);
 
   if (httpResponseCode != 200) {
     Serial.printf("❌ Download failed: HTTP %d\n", httpResponseCode);
+    if (httpResponseCode == 302 || httpResponseCode == 301) {
+      Serial.println("   Redirect not followed - check HTTPClient configuration");
+      String location = http.getLocation();
+      if (location.length() > 0) {
+        Serial.printf("   Redirect location: %s\n", location.c_str());
+      }
+    }
     http.end();
     otaUpdateInProgress = false;
     return false;
