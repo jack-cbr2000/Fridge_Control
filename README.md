@@ -26,7 +26,7 @@ This ESP32-based project implements a dual-zone refrigerator controller with adv
 ### Core Components
 - **ESP32 Development Board** (any ESP32 board with WiFi)
 - **2x Relay Modules** (5V coil, SPDT contacts rated for respective loads)
-- **NTC Thermistors** (10K B=3435 or B=5000 type)
+- **NTC Thermistors** (Auto calibrated in settings)
 - **Solenoid Valve** (12VDC for refrigerant flow control)
 - **Status LED** (optional, 3mm LED with current-limiting resistor)
 
