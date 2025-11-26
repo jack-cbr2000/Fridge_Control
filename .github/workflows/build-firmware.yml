@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Setup PlatformIO
-      uses: python-action/setup-python-docker-action@v1
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
         python-version: '3.9'
 
@@ -47,7 +47,7 @@ jobs:
         sha256sum partitions-${VERSION_TAG}.bin > partitions-${VERSION_TAG}.bin.sha256
 
     - name: Upload firmware as artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: firmware-binaries
         path: |

@@ -10,11 +10,11 @@
 #include <HTTPClient.h>
 #include <Update.h>
 
-// GitHub OTA Configuration - Update these for your repository!
+// GitHub OTA Configuration 
 #define GITHUB_OWNER "jack-cbr2000"
 #define GITHUB_REPO "Fridge_Control"
 #define CURRENT_VERSION "1.0.1"
-#define CHECK_INTERVAL_MINUTES 60  // Check every hour
+#define CHECK_INTERVAL_MINUTES 60 
 
 // GitHub OTA variables
 unsigned long lastUpdateCheck = 0;
