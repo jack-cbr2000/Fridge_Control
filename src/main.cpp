@@ -21,7 +21,7 @@
 // GitHub OTA Configuration
 #define GITHUB_OWNER "jack-cbr2000"
 #define GITHUB_REPO "Fridge_Control"
-#define CURRENT_VERSION "1.0.5"
+#define CURRENT_VERSION "1.0.6"
 #define CHECK_INTERVAL_MINUTES 60
 
 // NTP Configuration
@@ -1059,16 +1059,69 @@ void setupWebServer() {
     server.send(200, "application/json", getOtaStatusJSON());
   });
 
-  server.on("/api/ota/update", HTTP_POST, []() {
-    Serial.println("🔄 Manual OTA update triggered via web interface");
+  // Check for updates (does NOT install - just returns version info)
+  server.on("/api/ota/check", HTTP_GET, []() {
+    Serial.println("🔍 Checking for updates via web interface...");
     GitHubRelease update = checkForUpdates();
+    lastUpdateCheck = millis();
 
-    if (update.isNewer) {
-      Serial.printf("📦 Manual update to version %s requested\n", update.version.c_str());
-      initiateManualUpdate();
-      server.send(200, "application/json", "{\"success\":true,\"message\":\"Update initiated\",\"version\":\"" + update.version + "\"}");
+    DynamicJsonDocument doc(1024);
+    doc["success"] = true;
+    doc["currentVersion"] = CURRENT_VERSION;
+    doc["latestVersion"] = update.version;
+    doc["updateAvailable"] = update.isNewer;
+    doc["downloadUrl"] = update.downloadUrl;
+    doc["releaseNotes"] = update.releaseNotes;
+
+    String output;
+    serializeJson(doc, output);
+    server.send(200, "application/json", output);
+  });
+
+  // Install update (assumes check already done, proceeds with download/install)
+  server.on("/api/ota/update", HTTP_POST, []() {
+    Serial.println("🔄 Manual OTA install triggered via web interface");
+    
+    // Get the download URL from the request body if provided, otherwise check again
+    String downloadUrl = "";
+    if (server.hasArg("plain")) {
+      DynamicJsonDocument doc(512);
+      deserializeJson(doc, server.arg("plain"));
+      if (doc.containsKey("downloadUrl")) {
+        downloadUrl = doc["downloadUrl"].as<String>();
+      }
+    }
+
+    // If no URL provided, check for updates to get the URL
+    if (downloadUrl.length() == 0) {
+      GitHubRelease update = checkForUpdates();
+      if (!update.isNewer) {
+        server.send(200, "application/json", "{\"success\":false,\"message\":\"No updates available\",\"currentVersion\":\"" + String(CURRENT_VERSION) + "\"}");
+        return;
+      }
+      downloadUrl = update.downloadUrl;
+    }
+
+    if (downloadUrl.length() == 0) {
+      server.send(400, "application/json", "{\"success\":false,\"message\":\"No firmware download URL available\"}");
+      return;
+    }
+
+    Serial.printf("📦 Installing update from: %s\n", downloadUrl.c_str());
+    
+    // Send response before starting update (update will restart ESP)
+    server.send(200, "application/json", "{\"success\":true,\"message\":\"Update installation started. Device will restart when complete.\"}");
+    
+    // Small delay to ensure response is sent
+    delay(100);
+    
+    if (downloadAndInstallFirmware(downloadUrl)) {
+      Serial.println("✅ Update successful - restarting...");
+      delay(1000);
+      ESP.restart();
     } else {
-      server.send(200, "application/json", "{\"success\":false,\"message\":\"No updates available\",\"currentVersion\":\"" + String(CURRENT_VERSION) + "\"}");
+      Serial.println("❌ Update failed");
+      // Can't send response here since we already sent one
     }
   });
   
@@ -1456,19 +1509,8 @@ String getChartsPage() {
 }
 
 String getSettingsPage() {
-  File file = LittleFS.open("/settings.html", "r");
-  if (!file) {
-    Serial.println("Failed to open /settings.html from LittleFS");
-    return "<html><body><h1>File Not Found</h1><p>Could not load settings.html from LittleFS.</p><p>Please upload filesystem image!</p></body></html>";
-  }
-
-  String content = "";
-  while (file.available()) {
-    content += (char)file.read();
-  }
-  file.close();
-
-  return content;
+  Serial.println("Serving embedded settings.html");
+  return FPSTR(HTML_SETTINGS);
 }
 
 String getStatusJSON() {
