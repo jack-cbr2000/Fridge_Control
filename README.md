@@ -1,11 +1,13 @@
-# 12V Dual Zone Fridge ESP32 Controller
+# Fridge_Control - ESP32 Dual Zone Fridge Controller with OTA Updates
 
-This project implements a dual-zone refrigerator controller using an ESP32 microcontroller with web interface for monitoring and control. Designed for standard 12V DC refrigerator systems.
+This ESP32-based project implements a dual-zone refrigerator controller with advanced web interface, temperature logging with interactive charts, and **automatic over-the-air firmware updates** through GitHub.
 
 ## Features
 
 - **Dual Zone Control**: Independent temperature control for two separate cooling zones
 - **Web Interface**: Responsive web UI accessible via WiFi for monitoring and configuration
+- **Temperature Logging**: Real-time charts showing temperature history for both zones
+- **OTA Firmware Updates**: Automatic updates through GitHub Actions (safe updates only when compressor is OFF)
 - **Automatic Control**: Intelligent cooling logic with configurable parameters (hysteresis, timing, setpoints)
 - **Manual Override**: Full manual control of compressor and zone switching for maintenance/diagnosis
 - **Temperature Sensing**: NTC thermistor sensors for accurate temperature monitoring
@@ -15,6 +17,8 @@ This project implements a dual-zone refrigerator controller using an ESP32 micro
 - **WiFi Access Point**: Built-in hotspot for initial setup and standalone operation
 - **OTA Updates**: Over-the-air firmware updates via ArduinoOTA
 - **Testing Mode**: Hardware-validated testing mode using potentiometer for temperature simulation
+- **Multi-Network WiFi**: Support for up to 5 WiFi networks with automatic failover
+- **GitHub Integration**: Automated CI/CD pipeline for firmware builds and releases
 
 ## Hardware Requirements
 
@@ -99,24 +103,25 @@ Relay Contacts (COM/NO/NC):
    pip install platformio
    ```
 
-2. **Clone/Navigate to project**:
+2. **Clone the repository**:
    ```bash
-   cd dual-zone-fridge-project
+   git clone https://github.com/jack-cbr2000/Fridge_Control.git
+   cd Fridge_Control
    ```
 
 3. **Build the project**:
    ```bash
-   python -m platformio run
+   pio run
    ```
 
 4. **Upload firmware**:
    ```bash
-   python -m platformio run --target upload
+   pio run -t upload
    ```
 
-5. **Upload web files to SPIFFS**:
+5. **Upload web files to LittleFS**:
    ```bash
-   python -m platformio run --target uploadfs
+   pio run -t uploadfs
    ```
 
 ### Arduino IDE
@@ -135,89 +140,40 @@ Relay Contacts (COM/NO/NC):
    - Select ESP32 board and correct COM port
    - Upload
 
+## OTA Firmware Updates (New!)
+
+### Automatic Updates
+- **Safe Updates**: Only updates when compressor is OFF (prevents fridge damage)
+- **Hourly Checks**: Automatically checks for updates every hour when WiFi-connected
+- **GitHub Integration**: Updates triggered by GitHub releases with firmware binaries
+
+### Manual Updates
+- Settings page has "Firmware Updates" section
+- Click "Check for Updates" to manually trigger check
+- Click "Install Latest Update" for immediate update
+
+### GitHub Actions CI/CD
+- **Automated Builds**: Every push triggers compilation and testing
+- **Release Builds**: GitHub releases automatically include firmware binaries
+- **Firmware Files**: `firmware-v1.0.0.bin`, `bootloader-v1.0.0.bin`, `partitions-v1.0.0.bin`
+
 ## Network Setup
 
 ### WiFi Access Point Mode (Default)
-- **SSID**: FridgeControl
-- **Password**: 12345678
-- **Web Interface**: http://fridge.local or http://192.168.4.1
-- **mDNS**: http://fridge.local (if DNS works on your network)
-
-### Station Mode (Optional)
-Configure WiFi credentials in code:
-```cpp
-WiFi.begin("YourWiFiSSID", "YourWiFiPassword");
-```
-
-## Configuration Parameters
-
-### Temperature Control
-- **Setpoint Range**: -20°C to +10°C for both zones
-- **Hysteresis**: 1.0-8.0°C temperature band before cooling activates
-- **Temperature Offset**: Calibration correction for sensor accuracy
-
-### Timing Parameters
-- **Min Run Time**: 1-10 minutes minimum compressor on time
-- **Min Stop Time**: 1-15 minutes minimum compressor off time
-- **Min Zone Switch Time**: 1-10 minutes minimum time between zone changes
-- **Max Run Time**: 10-45 minutes maximum continuous compressor runtime
-
-## Testing and Safety
-
-### Hardware Testing
-1. **Power sequencing**: Connect 5V supply then 12V supply (verify polarity!)
-2. **Signal verification**: Use multimeter to verify relay coil voltage (5V) and ESP32 outputs
-3. **Load testing**: Verify solenoid movement and compressor startup (listen/feel for operation)
-4. **Current measurement**: Use multimeter in series to verify solenoid current (0.5-1A) and compressor current (<5A)
-5. **Safety checks**: Verify all 12V DC connections, fuses, and proper wire gauge before powering on
-
-### Software Testing Mode
-Enable `TESTING_MODE` in main.cpp:
-```cpp
-#define TESTING_MODE true  // Use potentiometer on pin 33 for simulation
-```
-
-### Safety Precautions (12V DC System)
-- **DC Power Warning**: Compressor relay switches 12V DC - ensure proper insulation and correct polarity
-- **Short Circuit Protection**: Use properly rated fuses (3-5A) in 12V supply to prevent fire
-- **Polarity Protection**: Use diodes in series with solenoid loads if reverse polarity is a concern
-- **Thermal Protection**: Monitor component temperatures during operation (relays can heat up)
-- **Wire Gauge**: Use adequate wire size: 14-16 AWG for power circuits, 22-24 AWG for signal
-- **Current Limiting**: ESP32 outputs are current-limited; verify relay trigger current requirements
-- **Ground Fault Protection**: Maintain clean, corrosion-free connections to prevent voltage drops
-
-## Troubleshooting
-
-### Common Issues
-- **No relay operation**: Check 5V supply voltage and ESP32 output voltage
-- **WiFi connection failure**: Verify SSID/password in ESP32 configuration
-- **Temperature inaccuracies**: Calibrate NTC sensors and check voltage divider values
-- **Compressor short cycling**: Adjust min run/stop times and hysteresis
-- **Web interface not loading**: Clear browser cache or use incognito mode
-
-### Debug Output
-Serial monitor output includes:
-- Temperature readings for both zones
-- System status and control decisions
-- Error conditions and timing information
-- Testing mode indicators
-
-## Regulatory Compliance
-
-This project implements safety features compliant with general appliance control standards:
-- Temperature control accuracy within ±1°C
-- Minimum cycle times prevent compressor stress
-- Error detection prevents runaway conditions
-- Manual override capability for service
-
-**Note**: While this controller meets technical standards for DIY projects, it should not be used in commercial or medical refrigeration without additional certification and testing.
+- **SSID**: `FridgeControl_[MAC]`
+- **Password**: `fridge123`
+- **Web Interface**: `http://fridge.local` or device IP
+- **Direct IP**: Shown in Serial monitor
 
 ## Development Roadmap
 
-Future enhancements may include:
-- Temperature logging with data export
-- Mobile app companion
-- Advanced algorithms for better efficiency
-- Cloud connectivity options
-- Energy consumption monitoring
-- Multiple compressor support
+✅ **Completed Features**:
+- [x] Basic dual-zone control
+- [x] Web interface
+- [x] Temperature logging with charts
+- [x] Multi-network WiFi support
+- [x] GitHub OTA firmware updates
+
+## License
+
+This project is open source - use at your own risk. See individual files for licensing details.
