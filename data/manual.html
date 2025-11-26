@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dual Zone Fridge Controller - Manual Controls</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  color: #ffffff;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.nav-bar {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  margin: 0 0.5rem;
+}
+
+.btn:hover, .btn:focus {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.manual-controls {
+  border: 2px solid rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.advanced-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.advanced-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.manual-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.manual-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-manual {
+  flex: 1;
+  min-width: 120px;
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+}
+
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.btn-warning:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.btn-secondary {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .manual-controls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .nav-bar .btn {
+    margin-bottom: 0.5rem;
+  }
+
+  .btn-manual {
+    flex: none;
+  }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dual Zone Fridge Controller</h1>
+            <p>Manual Controls</p>
+        </div>
+
+        <div class="nav-bar">
+            <a class="btn" href="/">Menu</a>
+            <a class="btn" href="/basic">Dashboard</a>
+            <a class="btn" href="/manual">Manual Controls</a>
+            <a class="btn" href="/charts">Temperature Logs</a>
+            <a class="btn" href="/settings">Settings</a>
+        </div>
+
+        <div class="manual-controls">
+            <div class="advanced-header">
+                <h3 class="advanced-title">Manual Controls</h3>
+                <span style="font-size: 0.875rem; opacity: 0.7;">⚠️ Use with caution - overrides automatic control</span>
+            </div>
+
+            <div class="manual-controls-grid">
+                <div class="manual-group">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: #cbd5e1; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.025em;">Compressor Control</label>
+                    <div class="button-group">
+                        <button class="btn-manual btn btn-success" onclick="manualCompressor('on')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Turn ON
+                        </button>
+                        <button class="btn-manual btn btn-warning" onclick="manualCompressor('off')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>
+                            </svg>
+                            Turn OFF
+                        </button>
+                        <button class="btn-manual btn btn-secondary" onclick="manualCompressor('auto')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Auto Mode
+                        </button>
+                    </div>
+                </div>
+
+                <div class="manual-group">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: #cbd5e1; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.025em;">Solenoid Control</label>
+                    <div class="button-group">
+                        <button class="btn-manual btn btn-info" onclick="manualSolenoid('left')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14 7l-5 5 5 5V7z"/>
+                            </svg>
+                            Left Zone
+                        </button>
+                        <button class="btn-manual btn btn-info" onclick="manualSolenoid('right')">
+                            Right Zone
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M10 17l5-5-5-5v10z"/>
+                            </svg>
+                        </button>
+                        <button class="btn-manual btn btn-secondary" onclick="manualSolenoid('auto')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Auto Mode
+                        </button>
+                    </div>
+                </div>
+
+                <div class="manual-group">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: #cbd5e1; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.025em;">Defrost Control</label>
+                    <div class="button-group">
+                        <button class="btn-manual btn btn-warning" onclick="manualDefrost('start')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Start Defrost
+                        </button>
+                        <button class="btn-manual btn btn-info" onclick="manualDefrost('stop')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>
+                            </svg>
+                            Stop Defrost
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function manualCompressor(action) {
+            if (confirm(`Are you sure you want to manually turn ${action.toUpperCase()} the compressor?\n\nThis will override automatic control.`)) {
+                fetch('/api/manual/compressor', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'action=' + action
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log(`Manual compressor ${action} successful`);
+                    }
+                })
+                .catch(error => console.error('Error controlling compressor:', error));
+            }
+        }
+
+        function manualSolenoid(zone) {
+            if (confirm(`Are you sure you want to manually switch to the ${zone.toUpperCase()} zone?\n\nThis will override automatic control.`)) {
+                fetch('/api/manual/solenoid', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'action=' + zone
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log(`Manual solenoid switch to ${zone} successful`);
+                    }
+                })
+                .catch(error => console.error('Error controlling solenoid:', error));
+            }
+        }
+
+        function manualDefrost(action) {
+            if (confirm(`Are you sure you want to ${action} defrost cycle?\n\nThis will ${action === 'start' ? 'stop the compressor and activate the defrost heater' : 'stop the defrost cycle'}.`)) {
+                fetch('/api/defrost', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'action=' + action
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log(`Defrost ${action} successful`);
+                    }
+                })
+                .catch(error => console.error('Error controlling defrost:', error));
+            }
+        }
+    </script>
+</body>
+</html>

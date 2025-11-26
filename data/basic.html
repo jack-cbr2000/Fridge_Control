@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dual Zone Fridge Controller - Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  color: #ffffff;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.connection-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  margin-left: 0.5rem;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.connection-indicator.connected {
+  background-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.nav-bar {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  margin: 0 0.5rem;
+}
+
+.btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.system-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.status-card {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.status-text {
+  font-size: 1.125rem;
+  font-weight: 500;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.status-text.running {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.status-text.stopped {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+}
+
+.status-text.manual {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+}
+
+.testing-indicator {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  display: none;
+}
+
+.zones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.zone-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.zone-card.cooling {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.zone-card.cooling::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.zone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.zone-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.zone-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(100, 116, 139, 0.2);
+  color: #cbd5e1;
+}
+
+.zone-status.cooling {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.temperature-display {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.temp-value {
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.temp-label {
+  font-size: 0.875rem;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.control-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.control-select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.control-select:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .zones-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .controls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-bar .btn {
+    margin-bottom: 0.5rem;
+  }
+
+  .temp-value {
+    font-size: 2.5rem;
+  }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Dual Zone Fridge Controller</h1>
+                <p>Dashboard</p>
+            </div>
+            <div class="connection-status">
+                Connection Status:
+                <div class="connection-indicator" id="connectionIndicator"></div>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <a class="btn" href="/">Menu</a>
+            <a class="btn" href="/basic">Dashboard</a>
+            <a class="btn" href="/manual">Manual Controls</a>
+            <a class="btn" href="/charts">Temperature Logs</a>
+            <a class="btn" href="/settings">Settings</a>
+        </div>
+
+        <div class="system-controls">
+            <button class="btn btn-primary" id="systemToggleBtn" onclick="toggleSystem()">
+                <span id="systemToggle">Enable System</span>
+            </button>
+            <button class="btn-secondary btn" onclick="refreshData()">
+                <span id="spinner" class="loader" style="display:none;"></span>
+                <span id="refreshText">Refresh</span>
+            </button>
+        </div>
+
+        <div class="card status-card">
+            <div class="status-text" id="statusDiv">
+                <strong>Status:</strong> <span id="statusText">Loading...</span>
+            </div>
+        </div>
+
+        <div class="card testing-indicator" id="testingIndicator">
+            <strong>⚠️ TESTING MODE ACTIVE</strong><br>
+            Using potentiometer on pin 33 to simulate temperatures. Turn potentiometer to change temperature range.
+        </div>
+
+        <div class="zones-grid">
+            <div class="card zone-card" id="leftZone">
+                <div class="zone-header">
+                    <h3 class="zone-title">Left Zone</h3>
+                    <span class="zone-status" id="leftStatus">Idle</span>
+                </div>
+
+                <div class="temperature-display">
+                    <span class="temp-value" id="leftTemp">--°C</span>
+                    <span class="temp-label">Current Temperature</span>
+                </div>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label class="control-label">Setpoint (°C)</label>
+                        <select class="control-select" id="leftSetpoint" onchange="updateConfig()">
+                            <option value="-20">-20</option>
+                            <option value="-19">-19</option>
+                            <option value="-18">-18</option>
+                            <option value="-17">-17</option>
+                            <option value="-16">-16</option>
+                            <option value="-15">-15</option>
+                            <option value="-14">-14</option>
+                            <option value="-13">-13</option>
+                            <option value="-12">-12</option>
+                            <option value="-11">-11</option>
+                            <option value="-10">-10</option>
+                            <option value="-9">-9</option>
+                            <option value="-8">-8</option>
+                            <option value="-7">-7</option>
+                            <option value="-6">-6</option>
+                            <option value="-5">-5</option>
+                            <option value="-4">-4</option>
+                            <option value="-3">-3</option>
+                            <option value="-2">-2</option>
+                            <option value="-1">-1</option>
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Zone Enabled</label>
+                        <select class="control-select" id="leftEnabled" onchange="updateConfig()">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card zone-card" id="rightZone">
+                <div class="zone-header">
+                    <h3 class="zone-title">Right Zone</h3>
+                    <span class="zone-status" id="rightStatus">Idle</span>
+                </div>
+
+                <div class="temperature-display">
+                    <span class="temp-value" id="rightTemp">--°C</span>
+                    <span class="temp-label">Current Temperature</span>
+                </div>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label class="control-label">Setpoint (°C)</label>
+                        <select class="control-select" id="rightSetpoint" onchange="updateConfig()">
+                            <option value="-20">-20</option>
+                            <option value="-19">-19</option>
+                            <option value="-18">-18</option>
+                            <option value="-17">-17</option>
+                            <option value="-16">-16</option>
+                            <option value="-15">-15</option>
+                            <option value="-14">-14</option>
+                            <option value="-13">-13</option>
+                            <option value="-12">-12</option>
+                            <option value="-11">-11</option>
+                            <option value="-10">-10</option>
+                            <option value="-9">-9</option>
+                            <option value="-8">-8</option>
+                            <option value="-7">-7</option>
+                            <option value="-6">-6</option>
+                            <option value="-5">-5</option>
+                            <option value="-4">-4</option>
+                            <option value="-3">-3</option>
+                            <option value="-2">-2</option>
+                            <option value="-1">-1</option>
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Zone Enabled</label>
+                        <select class="control-select" id="rightEnabled" onchange="updateConfig()">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let systemEnabled = false;
+
+        function refreshData() {
+            // Show spinner
+            document.getElementById('spinner').style.display = 'inline-block';
+            document.getElementById('refreshText').textContent = 'Refreshing...';
+
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => updateStatus(data))
+                .catch(error => console.error('Error fetching status:', error))
+                .finally(() => {
+                    // Hide spinner
+                    document.getElementById('spinner').style.display = 'none';
+                    document.getElementById('refreshText').textContent = 'Refresh';
+                });
+
+            fetch('/api/config')
+                .then(response => response.json())
+                .then(data => updateConfig(data))
+                .catch(error => console.error('Error fetching config:', error));
+        }
+
+        function updateStatus(data) {
+            document.getElementById('leftTemp').textContent = data.leftTemp.toFixed(1) + '°C';
+            document.getElementById('rightTemp').textContent = data.rightTemp.toFixed(1) + '°C';
+            document.getElementById('statusText').textContent = data.status;
+
+            // Update zone visual states
+            const leftZone = document.getElementById('leftZone');
+            const rightZone = document.getElementById('rightZone');
+            const leftStatus = document.getElementById('leftStatus');
+            const rightStatus = document.getElementById('rightStatus');
+
+            leftZone.className = 'card zone-card' + (data.leftCooling ? ' cooling' : '');
+            rightZone.className = 'card zone-card' + (data.rightCooling ? ' cooling' : '');
+
+            leftStatus.textContent = data.leftCooling ? 'Cooling' : 'Idle';
+            rightStatus.textContent = data.rightCooling ? 'Cooling' : 'Idle';
+            leftStatus.className = 'zone-status' + (data.leftCooling ? ' cooling' : '');
+            rightStatus.className = 'zone-status' + (data.rightCooling ? ' cooling' : '');
+
+            // Update status div
+            const statusDiv = document.getElementById('statusDiv');
+            let statusClass = 'status-text ';
+            if (data.status.includes('Manual')) {
+                statusClass += 'manual';
+            } else if (data.compressorOn) {
+                statusClass += 'running';
+            } else {
+                statusClass += 'stopped';
+            }
+            statusDiv.className = statusClass;
+
+            // Update system toggle button
+            systemEnabled = data.systemEnabled;
+            const toggleBtn = document.getElementById('systemToggleBtn');
+            const toggleText = document.getElementById('systemToggle');
+
+            if (systemEnabled) {
+                toggleText.textContent = 'Disable System';
+                toggleBtn.className = 'btn btn-danger';
+            } else {
+                toggleText.textContent = 'Enable System';
+                toggleBtn.className = 'btn btn-primary';
+            }
+
+            // Show testing mode indicator
+            if (data.testingMode) {
+                document.getElementById('testingIndicator').style.display = 'block';
+            } else {
+                document.getElementById('testingIndicator').style.display = 'none';
+            }
+        }
+
+        let typing = false;
+        let typingTimeout;
+
+        function startTyping() {
+            typing = true;
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => typing = false, 2000);
+        }
+
+        function updateConfig(data) {
+            if (data && !typing) {
+                document.getElementById('leftSetpoint').value = data.leftSetpoint;
+                document.getElementById('rightSetpoint').value = data.rightSetpoint;
+                document.getElementById('leftEnabled').value = data.leftEnabled;
+                document.getElementById('rightEnabled').value = data.rightEnabled;
+            } else if (!data) {
+                // Send updated config to server
+                const configData = {
+                    leftSetpoint: parseFloat(document.getElementById('leftSetpoint').value),
+                    rightSetpoint: parseFloat(document.getElementById('rightSetpoint').value),
+                    leftEnabled: document.getElementById('leftEnabled').value === 'true',
+                    rightEnabled: document.getElementById('rightEnabled').value === 'true'
+                };
+
+                fetch('/api/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(configData)
+                }).catch(error => console.error('Error updating config:', error));
+            }
+        }
+
+        // Add typing detection to all inputs
+        window.addEventListener('load', () => {
+            document.querySelectorAll('input, select').forEach(el => {
+                el.addEventListener('input', startTyping);
+                el.addEventListener('change', startTyping);
+            });
+        });
+
+        function toggleSystem() {
+            const action = systemEnabled ? 'disable' : 'enable';
+            fetch('/api/system', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'action=' + action
+            }).then(() => refreshData())
+              .catch(error => console.error('Error toggling system:', error));
+        }
+
+        // Connection status updater
+        function setConnectionStatus(connected) {
+            const indicator = document.getElementById("connectionIndicator");
+            if (connected) {
+                indicator.classList.add('connected');
+            } else {
+                indicator.classList.remove('connected');
+            }
+        }
+
+        // Auto-refresh every 5 seconds with connection status
+        setInterval(() => {
+            fetch('/api/status')
+                .then(res => {
+                    setConnectionStatus(res.ok);
+                    return res.json();
+                })
+                .then(data => updateStatus(data))
+                .catch(() => setConnectionStatus(false));
+        }, 5000);
+
+        // Initial load
+        refreshData();
+    </script>
+</body>
+</html>

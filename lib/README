@@ -1,0 +1,165 @@
+# Library Directory - ESP32 Dual Zone Fridge Libraries
+
+This directory is intended for private/custom libraries specific to the ESP32 Dual Zone Fridge Controller project. Currently empty as the project uses Arduino ESP32 core libraries.
+
+## Current Library Dependencies
+
+The Dual Zone Fridge Controller uses the following Arduino/ESP32 libraries (automatically managed by PlatformIO):
+
+### Required Libraries (ESP32 Core)
+- **WiFi**: ESP32 WiFi connectivity for web interface and networking
+- **WebServer**: HTTP server functionality for the web interface
+- **SPIFFS**: SPI Flash File System for storing web assets
+- **ArduinoJson**: JSON serialization for API responses
+- **EEPROM**: Non-volatile configuration storage
+- **ESPmDNS**: Multicast DNS for network discovery
+- **DNSServer**: DNS server for captive portal functionality
+- **ArduinoOTA**: Over-the-Air firmware updates
+
+### Library Installation
+
+#### PlatformIO (Automatic)
+All dependencies are managed through `platformio.ini`:
+
+```ini
+[env:esp32dev]
+platform = espressif32
+board = esp32dev
+framework = arduino
+
+lib_deps =
+    ArduinoJson
+    ESPmDNS
+    DNSServer
+```
+
+#### Arduino IDE (Manual)
+Required libraries must be installed via Library Manager:
+1. **ArduinoJson**: By Benoit Blanchon (install via Library Manager)
+2. **ESP32Servo**: For servo control if expanded
+3. **Other ESP32-specific libraries** as needed
+
+## Adding Custom Libraries
+
+When adding private libraries, organize them as:
+
+```
+lib/
+├── YourLibrary/
+│   ├── src/
+│   │   ├── YourLibrary.h
+│   │   └── YourLibrary.cpp
+│   └── library.json (optional)
+├── AnotherLibrary/
+│   └── src/
+│       ├── AnotherLibrary.h
+│       └── AnotherLibrary.cpp
+```
+
+### Example Custom Library Structure
+
+**lib/SensorManager/src/SensorManager.h**:
+```cpp
+#ifndef SENSOR_MANAGER_H
+#define SENSOR_MANAGER_H
+
+#include <Arduino.h>
+
+class SensorManager {
+public:
+    SensorManager(int ntcPin);
+    void begin();
+    float readTemperature();
+private:
+    int _ntcPin;
+    float _steinhartEquation(int adcValue);
+};
+
+#endif
+```
+
+**lib/SensorManager/src/SensorManager.cpp**:
+```cpp
+#include "SensorManager.h"
+
+// NTC thermistor reading and conversion logic
+float SensorManager::readTemperature() {
+    int adcValue = analogRead(_ntcPin);
+    return _steinhartEquation(adcValue);
+}
+```
+
+**Usage in main code**:
+```cpp
+#include <SensorManager.h>
+
+SensorManager leftSensor(NTC_LEFT_PIN);
+leftSensor.begin();
+float temp = leftSensor.readTemperature();
+```
+
+## Library Development Best Practices
+
+### ESP32-Specific Considerations
+1. **Memory Management**: ESP32 has limited SRAM (320KB) - use PROGMEM for constants
+2. **Task Safety**: Consider FreeRTOS task switching when sharing data
+3. **GPIO Usage**: Be aware of pins restricted by ESP32 bootloader
+4. **WiFi Interference**: Avoid GPIO operations during WiFi transmission
+5. **Power Management**: Consider ESP32 sleep modes for battery operation
+
+### Code Organization
+1. **Single Responsibility**: Each library should handle one specific function
+2. **Dependency Injection**: Pass required objects rather than global dependencies
+3. **Error Handling**: Implement robust error states and recovery
+4. **Testing**: Include unit tests where possible (see test/README)
+
+### Relay Control Library Example
+
+For advanced relay control, you could create a library:
+
+**lib/RelayController/src/RelayController.h**:
+```cpp
+#ifndef RELAY_CONTROLLER_H
+#define RELAY_CONTROLLER_H
+
+#include <Arduino.h>
+
+enum RelayMode {
+    RELAY_AC_COMPRESSOR,
+    RELAY_DC_SOLENOID,
+    RELAY_DC_LED
+};
+
+class RelayController {
+public:
+    RelayController(int pin, RelayMode mode);
+    void begin();
+    void on();
+    void off();
+    bool getState();
+private:
+    int _pin;
+    RelayMode _mode;
+    bool _state;
+};
+
+#endif
+```
+
+This would abstract relay control logic and provide safety checks based on relay type.
+
+## Testing Custom Libraries
+
+Create test files in the `test/` directory:
+- Unit tests for sensor accuracy
+- Integration tests for relay switching
+- Memory leak tests for ESP32
+- Network connectivity tests
+
+See `test/README` for testing framework details.
+
+## Library Resources
+
+- **ESP32 Arduino Core**: https://github.com/espressif/arduino-esp32
+- **PlatformIO Libraries**: https://platformio.org/lib
+- **ESP-IDF Documentation**: https://docs.espressif.com/projects/esp32/

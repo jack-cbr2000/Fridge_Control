@@ -1,0 +1,23 @@
+.pio
+*.tmp
+.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+.env
+.cache/
+build/
+dist/
+
+# Firmware build artifacts
+*.bin
+*.elf
+*.map
+*.lst
+*.log
+
+# LittleFS/Arduino IDE build artifacts
+data/.vscode/
+project_config.mk

@@ -1,0 +1,225 @@
+# Testing Directory - ESP32 Dual Zone Fridge Testing
+
+This directory contains unit tests, integration tests, and hardware validation procedures for the ESP32 Dual Zone Fridge Controller.
+
+## Current Testing Status
+
+The project currently includes:
+- **Hardware Validation Mode**: Built-in testing mode using potentiometer simulation
+- **Manual Testing Procedures**: Comprehensive hardware checkout process
+- **Serial Debug Output**: Real-time status monitoring via USB serial
+
+## Hardware Testing Procedures
+
+### Pre-Testing Setup
+1. **ESP32 Configuration**: Set `TESTING_MODE = true` in `main.cpp`
+2. **Potentiometer Simulation**: Connect 10K potentiometer to pin 33
+3. **Power Supplies**: Connect 5V and 12V supplies (with power OFF)
+4. **Multimeter**: Required for voltage/current measurements
+
+### Power-Up Sequence
+```
+1. Connect 5V supply to ESP32 and relays
+2. Connect 12V supply to solenoid valve
+3. Turn potentiometer fully counterclockwise (simulate -10°C)
+4. Power on ESP32 and wait for serial output
+5. Turn potentiometer to middle position (simulate room temp)
+```
+
+### Phase 1: Relay Control Testing
+
+#### Compressor Relay Verification
+```cpp
+// In serial monitor, note relay clicking sounds
+digitalWrite(COMPRESSOR_PIN, HIGH);  // Should hear relay CLICK
+digitalWrite(COMPRESSOR_PIN, LOW);   // Should hear relay CLICK
+```
+
+**Verification Points:**
+- [ ] Relay coil voltage: 5V ±0.2V when GPIO HIGH
+- [ ] Relay current draw: <40mA (ESP32 limit)
+- [ ] Audible click sound on state change
+- [ ] Contact resistance: <0.1Ω when closed
+- [ ] No voltage on contacts when relay OFF
+
+#### Solenoid Relay Verification
+```cpp
+// Test solenoid valve operation
+digitalWrite(SOLENOID_PIN, HIGH);   // Valve should move
+delay(1000);
+digitalWrite(SOLENOID_PIN, LOW);    // Valve should move back
+```
+
+**Verification Points:**
+- [ ] Solenoid current draw: 0.3-0.8A @ 12VDC
+- [ ] Physical valve movement (audible/mechanical feedback)
+- [ ] Relay contacts handle solenoid current without heating
+- [ ] Flyback diode prevents ESP32 pin damage
+
+### Phase 2: Temperature Sensing Testing
+
+#### NTC Thermistor Calibration
+- **Ice water bath (0°C)**: Measure voltage at ADC pin, calculate resistance
+- **Boiling water bath (100°C)**: Measure voltage at ADC pin, calculate resistance
+- **Room temperature (25°C)**: Compare with digital thermometer
+
+**Expected ADC Range:**
+- Ice water: ~3000-3500 (cold = low resistance = high voltage)
+- Room temp: ~1800-2200
+- Hot water: ~800-1200
+
+#### Accuracy Verification
+```cpp
+// Use Serial output for temperature verification
+Serial.print("Left: "); Serial.print(state.leftTemp);
+Serial.print("°C Right: "); Serial.print(state.rightTemp);
+// Compare with actual thermometer near NT
+```
+
+### Phase 3: Control Logic Testing
+
+#### Hysteresis Testing
+1. Set potentiometer for 5°C (just below setpoint)
+2. Verify compressor OFF
+3. Adjust to 6°C (above setpoint + hysteresis)
+4. Verify compressor activates
+5. Adjust back to 4.5°C (below setpoint - hysteresis)
+6. Verify compressor deactivates
+
+#### Zone Switching Testing
+1. Enable both zones, set different setpoints
+2. Force LEFT zone temperature low, RIGHT zone high
+3. Verify solenoid switches to RIGHT zone
+4. Reverse temperature conditions
+5. Verify proper zone switching
+
+### Phase 4: Network Testing
+
+#### WiFi Access Point
+- [ ] AP visible on mobile/tablet
+- [ ] Password "12345678" allows connection
+- [ ] IP address accessible (192.168.4.1)
+- [ ] mDNS working (http://fridge.local)
+
+#### Web Interface
+- [ ] Main page loads (temperature display, controls)
+- [ ] Real-time temperature updates
+- [ ] Configuration changes persist
+- [ ] Manual control buttons functional
+- [ ] Manual compressor ON/OFF/AUTO cycles
+
+### Phase 5: Safety Testing
+
+#### Overload Protection
+- [ ] Compressor relay contacts don't heat under full load
+- [ ] ESP32 current draw stays <150mA total
+- [ ] Temperature sensors don't produce out-of-range values
+- [ ] EEPROM writes are limited (wear levelling)
+
+#### Error Recovery
+- [ ] ESP32 handles sensor disconnection gracefully
+- [ ] Relay failures don't crash main control loop
+- [ ] Network connectivity loss doesn't affect cooling logic
+
+## Integration Test Procedures
+
+### Full System Test (Testing Mode)
+```cpp
+#define TESTING_MODE true
+// Full refrigerator simulation sequence
+```
+
+1. **Cold Start**: Both zones warm, verify dual cooling
+2. **Temperature Stabilization**: Verify hysteresis prevention of short cycling
+3. **Zone Priority**: Verify hotter zone gets priority
+4. **Manual Override**: Test manual controls don't interfere with safety
+
+### Production Mode Preparation
+```cpp
+#define TESTING_MODE false
+// Remove potentiometer, connect actual NTC sensors
+```
+
+1. **Sensor Reconnection**: Physical NTC sensor installation
+2. **Temperature Calibration**: Offset adjustment for accuracy
+3. **Load Testing**: Actual compressor and solenoid operation
+4. **Long-term Stability**: 24+ hour operation testing
+
+## Unit Testing Framework
+
+For automated unit tests, you can add C++ test files:
+
+**test/test_relay.cpp**:
+```cpp
+#include <unity.h>
+#include "RelayController.h"
+
+void test_relay_initialization(void) {
+    RelayController relay(2, RELAY_AC_COMPRESSOR);
+    relay.begin();
+    TEST_ASSERT_FALSE(relay.getState());
+}
+
+void test_relay_active_high(void) {
+    RelayController relay(4, RELAY_DC_SOLENOID);
+    relay.begin();
+    relay.on();
+    TEST_ASSERT_TRUE(relay.getState());
+    // Verify GPIO output voltage
+}
+
+int main(int argc, char *argv[]) {
+    UNITY_BEGIN();
+    RUN_TEST(test_relay_initialization);
+    RUN_TEST(test_relay_active_high);
+    // Add more relay-specific tests
+    return UNITY_END();
+}
+```
+
+## Testing Tools Recommended
+
+- **Multimeter**: Voltage/current measurements and continuity
+- **Oscilloscope**: Signal integrity and timing analysis
+- **Logic Analyzer**: GPIO signal verification
+- **Digital Thermometer**: Reference temperature measurements
+- **Power Supply**: Variable DC supply for solenoid testing
+- **USB Serial Monitor**: ESP32 debug output observation
+
+## ESP32-Specific Testing Considerations
+
+- **Power Supply Noise**: WiFi transmission can cause voltage fluctuations
+- **ADC Accuracy**: 12-bit ADC requires calibration for precision measurements
+- **Memory Constraints**: Large test data may exceed ESP32 RAM limits
+- **Flash Wear**: EEPROM write operations should be limited during testing
+
+## Test Data Logging
+
+For detailed analysis, enable enhanced logging:
+
+```cpp
+#define DEBUG_MODE true
+// Additional Serial.printf() statements for detailed info
+```
+
+## Regression Testing Checklist
+
+After code changes, verify:
+- [ ] All hardware tests pass with both relay configurations
+- [ ] Temperature accuracy maintained (±1°C)
+- [ ] Network connectivity stable under load
+- [ ] Manual controls work independently
+- [ ] Safety limits prevent runaway operation
+- [ ] Configuration persistence works correctly
+
+## Reporting Issues
+
+When reporting test failures, include:
+- ESP32 board model and revision
+- Relay module specifications
+- Power supply voltage/current measurements
+- Serial console output at time of failure
+- Exact test step that failed
+- Environmental conditions (temperature proximity sensors)
+
+See main project README.md for detailed hardware specifications and setup instructions.

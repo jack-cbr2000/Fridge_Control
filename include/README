@@ -1,0 +1,88 @@
+# Include Directory - Dual Zone Fridge Controller Headers
+
+This directory contains custom header files for the ESP32 Dual Zone Fridge Controller project.
+
+## Current State
+
+This directory is currently empty as all code is contained in the main `src/main.cpp` file. However, as the project grows, you may want to organize code into separate header (.h) and implementation (.cpp) files for better modularity.
+
+## Recommended Organization
+
+When adding header files, use this structure:
+
+```
+include/
+├── config.h          // Project configuration constants and structs
+├── sensors.h         // NTC thermistor and sensor handling
+├── control.h         // Temperature control algorithms
+├── webserver.h       // Web interface and API functions
+└── hardware.h        // Pin definitions and hardware abstraction
+```
+
+## Example Usage
+
+If you create a `config.h` header file:
+
+**include/config.h**:
+```cpp
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// Temperature control constants
+#define MIN_SETPOINT -20.0f
+#define MAX_SETPOINT 10.0f
+#define DEFAULT_HYSTERESIS 1.0f
+
+// Hardware pin definitions
+#define COMPRESSOR_PIN 2
+#define SOLENOID_PIN 4
+#define NTC_LEFT_PIN 32
+#define NTC_RIGHT_PIN 33
+
+// System configuration struct
+struct SystemConfig {
+    float leftSetpoint = 4.0;
+    float rightSetpoint = 4.0;
+    bool leftEnabled = true;
+    bool rightEnabled = true;
+};
+
+#endif // CONFIG_H
+```
+
+**src/main.cpp**:
+```cpp
+#include "config.h"
+
+// Use the configuration
+SystemConfig sysConfig;
+```
+
+## ESP32-Specific Header Considerations
+
+- Include `<Arduino.h>` for ESP32 core functionality
+- Use `PROGMEM` for large constant strings to save SRAM
+- Consider interrupt-safe functions for time-critical operations
+- Use ESP32-specific GPIO functions for enhanced control
+
+## Best Practices
+
+1. **Include Guards**: Always use `#ifndef/#define/#endif` guards to prevent multiple inclusion
+2. **Forward Declarations**: Declare functions and classes in headers, implement in .cpp files
+3. **Minimal Includes**: Include only what's necessary to reduce compilation time
+4. **Documentation**: Comment header files with clear function/class descriptions
+5. **ESP32 Compatibility**: Ensure ESP32-specific features are properly guarded
+
+## Benefits of Modular Headers
+
+- **Faster Compilation**: Only recompiled files need rebuilding
+- **Code Reusability**: Header functions can be used across files
+- **Better Organization**: Logical separation of concerns
+- **Easier Testing**: Individual components can be unit tested
+- **Collaboration**: Multiple developers can work on different modules
+
+## PlatformIO Integration
+
+PlatformIO automatically recognizes `.h` files in the `include/` directory and makes them available for inclusion with `#include "filename.h"` syntax.
+
+For more detailed ESP32 programming information, refer to the Espressif documentation: https://docs.espressif.com/projects/esp32/
