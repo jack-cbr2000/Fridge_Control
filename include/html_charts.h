@@ -265,7 +265,15 @@ body {
                     // Prepare data for Chart.js
                     const labels = filteredData.map(point => {
                         const date = new Date(point.timestamp * 1000);
-                        return date.toLocaleString();
+                        // Only show date for 7-day range, otherwise just time
+                        if (range === '168') {
+                            // 7 days - show short date and time
+                            return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + 
+                                   date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+                        } else {
+                            // Shorter ranges - show only time
+                            return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        }
                     });
 
                     const leftTemps = filteredData.map(point => point.leftTemp);
@@ -419,6 +427,7 @@ body {
     </script>
 </body>
 </html>
+
 )====" ;
 
 #endif // HTML_CHARTS_H

@@ -21,7 +21,7 @@
 // GitHub OTA Configuration
 #define GITHUB_OWNER "jack-cbr2000"
 #define GITHUB_REPO "Fridge_Control"
-#define CURRENT_VERSION "1.0.4"
+#define CURRENT_VERSION "1.0.5"
 #define CHECK_INTERVAL_MINUTES 60
 
 // NTP Configuration

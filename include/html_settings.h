@@ -1,12 +1,1399 @@
 // Auto-generated from settings.html
-// Do not edit manually
+// Do not edit manually - regenerate with: node convert_html.js
 
 #ifndef HTML_SETTINGS_H
 #define HTML_SETTINGS_H
 
 #include <Arduino.h>
 
-// Placeholder - full content to be generated
-const char HTML_SETTINGS[] PROGMEM = "placeholder";
+const char HTML_SETTINGS[] PROGMEM = R"====(
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dual Zone Fridge Controller - Settings</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  color: #ffffff;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.nav-bar {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  margin: 0 0.5rem;
+}
+
+.btn:hover, .btn:focus {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.advanced-settings {
+  margin-top: 2rem;
+}
+
+.advanced-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.advanced-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.advanced-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.control-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.control-select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.control-select:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.control-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.control-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.control-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.wifi-status {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.wifi-status p {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.wifi-config {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.btn-primary {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:hover {
+  background: rgba(59, 130, 246, 0.3);
+}
+
+.btn-success {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  margin-top: 1rem;
+}
+
+.btn-success:hover {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+.loader {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #3b82f6;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.signal-strength {
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.signal-bar {
+  display: inline-block;
+  width: 3px;
+  height: 10px;
+  background: #4ade80;
+  margin: 0 1px;
+  border-radius: 1px;
+}
+
+.signal-bar.weak {
+  background: #ef4444;
+}
+
+.signal-bar.medium {
+  background: #f59e0b;
+}
+
+.signal-bar.strong {
+  background: #4ade80;
+}
+
+.network-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+  cursor: move;
+}
+
+.network-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.network-card.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.network-card.empty-slot {
+  background: rgba(255, 255, 255, 0.03);
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.1);
+  cursor: default;
+}
+
+.network-card.empty-slot:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.network-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.network-priority {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  min-width: 24px;
+  text-align: center;
+}
+
+.network-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.network-ssid {
+  font-weight: 600;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+}
+
+.network-status {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+}
+
+.network-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-small:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.drag-handle {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 1.25rem;
+  cursor: grab;
+  margin-right: 0.5rem;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .advanced-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .network-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .network-actions {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .nav-bar .btn {
+    margin-bottom: 0.5rem;
+  }
+
+  .network-actions button {
+    flex: 1;
+  }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dual Zone Fridge Controller</h1>
+            <p>Settings</p>
+        </div>
+
+        <div class="nav-bar">
+            <a class="btn" href="/">Menu</a>
+            <a class="btn" href="/basic">Dashboard</a>
+            <a class="btn" href="/manual">Manual Controls</a>
+            <a class="btn" href="/charts">Temperature Logs</a>
+            <a class="btn" href="/settings">Settings</a>
+        </div>
+
+        <div class="advanced-settings">
+            <div class="advanced-header">
+                <h3 class="advanced-title">WiFi Configuration</h3>
+            </div>
+
+            <div class="wifi-status" id="wifiStatus">
+                <p><strong>Current Status:</strong> <span id="currentStatus">Loading...</span></p>
+                <p><strong>Connected to:</strong> <span id="connectedSSID">-</span></p>
+                <p><strong>Direct IP Access:</strong> <a href="#" id="ipAddressLink" style="color: #60a5fa; text-decoration: none; font-weight: bold;" onclick="return false;"><span id="ipAddress">-</span></a> <button onclick="copyIP()" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-left: 0.5rem;">Copy</button></p>
+                <p><strong>Easy Access URL:</strong> <a href="http://fridge.local" style="color: #60a5fa; text-decoration: none;">http://fridge.local</a> <span style="color: #f59e0b; font-size: 0.75rem;">⚠️ Requires Bonjour on Windows</span></p>
+                <p style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.5rem;">
+                    💡 <strong>Windows users:</strong> Use the IP address above, or install <a href="https://support.apple.com/kb/DL999" target="_blank" style="color: #60a5fa;">Bonjour Print Services</a> to enable .local addresses
+                </p>
+            </div>
+
+            <div class="wifi-config">
+                <h4 style="margin-bottom: 1rem; color: #e2e8f0;">Configured Networks (Priority Order)</h4>
+                <p style="font-size: 0.875rem; color: #cbd5e1; margin-bottom: 1rem;">
+                    Controller will connect to the first available network in this list. Drag to reorder priority.
+                </p>
+
+                <div id="configuredNetworks" style="margin-bottom: 1.5rem;">
+                    <!-- Configured networks will be loaded here -->
+                </div>
+
+                <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 1.5rem 0;">
+
+                <h4 style="margin-bottom: 1rem; color: #e2e8f0;">Add New Network</h4>
+                
+                <button class="btn btn-primary" onclick="scanNetworks()" id="scanBtn">
+                    <span id="scanBtnText">Scan Networks</span>
+                </button>
+                
+                <div id="networkList" style="display:none; margin-top: 1rem;">
+                    <label class="control-label">Available Networks</label>
+                    <select class="control-select" id="networkSelect" onchange="selectNetwork()">
+                        <option value="">-- Select Network --</option>
+                    </select>
+                </div>
+
+                <div class="control-group" style="margin-top: 1rem;">
+                    <label class="control-label">WiFi SSID (Network Name)</label>
+                    <input type="text" class="control-input" id="wifiSsid" placeholder="Enter SSID manually or select from scan">
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">WiFi Password</label>
+                    <input type="password" class="control-input" id="wifiPassword" placeholder="Enter password">
+                </div>
+
+                <button class="btn btn-success" onclick="addNetwork()">Add Network</button>
+                <button class="btn btn-primary" onclick="saveAllNetworks()" style="margin-left: 0.5rem;">Save All Changes</button>
+            </div>
+        </div>
+
+        <div class="advanced-settings" style="margin-top: 2rem;">
+            <div class="advanced-header">
+                <h3 class="advanced-title">Advanced Settings</h3>
+            </div>
+
+            <div class="advanced-grid">
+                <div class="control-group">
+                    <label class="control-label">Hysteresis (°C)</label>
+                    <select class="control-select" id="hysteresis" onchange="updateConfig()">
+                        <option value="1.0">1.0</option>
+                        <option value="1.5">1.5</option>
+                        <option value="2.0">2.0</option>
+                        <option value="2.5">2.5</option>
+                        <option value="3.0">3.0</option>
+                        <option value="3.5">3.5</option>
+                        <option value="4.0">4.0</option>
+                        <option value="4.5">4.5</option>
+                        <option value="5.0">5.0</option>
+                        <option value="5.5">5.5</option>
+                        <option value="6.0">6.0</option>
+                        <option value="6.5">6.5</option>
+                        <option value="7.0">7.0</option>
+                        <option value="7.5">7.5</option>
+                        <option value="8.0">8.0</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Min Run Time (min)</label>
+                    <select class="control-select" id="minRunTime" onchange="updateConfig()">
+                        <option value="0.5">0.5</option>
+                        <option value="1.0">1.0</option>
+                        <option value="1.5">1.5</option>
+                        <option value="2.0">2.0</option>
+                        <option value="2.5">2.5</option>
+                        <option value="3.0">3.0</option>
+                        <option value="3.5">3.5</option>
+                        <option value="4.0">4.0</option>
+                        <option value="4.5">4.5</option>
+                        <option value="5.0">5.0</option>
+                        <option value="5.5">5.5</option>
+                        <option value="6.0">6.0</option>
+                        <option value="6.5">6.5</option>
+                        <option value="7.0">7.0</option>
+                        <option value="7.5">7.5</option>
+                        <option value="8.0">8.0</option>
+                        <option value="8.5">8.5</option>
+                        <option value="9.0">9.0</option>
+                        <option value="9.5">9.5</option>
+                        <option value="10.0">10.0</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Min Stop Time (min)</label>
+                    <select class="control-select" id="minStopTime" onchange="updateConfig()">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                        <option value="14">14</option>
+                        <option value="15">15</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Min Zone Switch Time (min)</label>
+                    <select class="control-select" id="minZoneSwitchTime" onchange="updateConfig()">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Max Run Time (min)</label>
+                    <select class="control-select" id="maxRunTime" onchange="updateConfig()">
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="30">30</option>
+                        <option value="35">35</option>
+                        <option value="40">40</option>
+                        <option value="45">45</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Temperature Offset (°C)</label>
+                    <select class="control-select" id="tempOffset" onchange="updateConfig()">
+                        <option value="-5">-5</option>
+                        <option value="-4">-4</option>
+                        <option value="-3">-3</option>
+                        <option value="-2">-2</option>
+                        <option value="-1">-1</option>
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="advanced-settings" style="margin-top: 2rem;">
+            <div class="advanced-header">
+                <h3 class="advanced-title">NTC Temperature Calibration</h3>
+            </div>
+
+            <div class="wifi-config">
+                <p style="color: #cbd5e1; margin-bottom: 1rem;">
+                    Two-point calibration for accurate beta coefficient calculation. Leave fridge door open for room temperature reading, then place sensors in ice water or use freezer for cold temperature.
+                </p>
+
+                <div id="calibrationStatus" style="padding: 1rem; border-radius: 8px; background: rgba(255, 255, 255, 0.05); margin-bottom: 1rem;">
+                    <strong>Status:</strong> <span id="calStatusText">Loading...</span><br>
+                    <strong>Calibration:</strong> <span id="isCalibrated">No</span><br>
+                    <div id="calibrationDetails" style="display: none;">
+                        <strong>Beta:</strong> <span id="betaValue">-</span><br>
+                        <strong>Nominal Temp:</strong> <span id="nominalTemp">-</span>°C<br>
+                        <strong>Nominal Resistance:</strong> <span id="nominalResistance">-</span> ohms
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="control-group">
+                        <label class="control-label">Point 1 Temp (°C)</label>
+                        <input type="number" class="control-input" id="point1Temp" placeholder="25.0" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Point 2 Temp (°C)</label>
+                        <input type="number" class="control-input" id="point2Temp" placeholder="0.0" step="0.1">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <button class="btn btn-success" onclick="setCalibrationPoint(1)" id="point1Btn">
+                        Set Point 1 (Room Temp)
+                    </button>
+                    <button class="btn btn-warning" onclick="setCalibrationPoint(2)" id="point2Btn">
+                        Set Point 2 (Cold Temp)
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-primary" onclick="resetCalibration()">
+                        Reset Calibration
+                    </button>
+                </div>
+
+                <div id="point1Info" style="padding: 0.5rem; background: rgba(34, 197, 94, 0.1); border-radius: 4px; margin-top: 0.5rem; display: none;">
+                    Point 1 recorded at <span id="point1RecordedTemp">-</span>°C (R_left: <span id="point1RLeft">-</span>, R_right: <span id="point1RRight">-</span>)
+                </div>
+
+                <div id="point2Info" style="padding: 0.5rem; background: rgba(245, 158, 11, 0.1); border-radius: 4px; margin-top: 0.5rem; display: none;">
+                    Point 2 recorded at <span id="point2RecordedTemp">-</span>°C (R_left: <span id="point2RLeft">-</span>, R_right: <span id="point2RRight">-</span>)
+                </div>
+            </div>
+        </div>
+
+        <div class="advanced-settings" style="margin-top: 2rem;">
+            <div class="advanced-header">
+                <h3 class="advanced-title">Firmware Updates</h3>
+            </div>
+
+            <div class="wifi-config">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div>
+                        <strong>Current Version:</strong> <span id="currentVersion">Loading...</span><br>
+                        <strong>Last Checked:</strong> <span id="lastChecked">Never</span>
+                    </div>
+                    <button class="btn btn-success" onclick="checkForUpdates()" id="checkUpdateBtn">
+                        Check for Updates
+                    </button>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; flex: 1;">
+                        <div style="position: relative; width: 50px; height: 26px;">
+                            <input type="checkbox" id="autoUpdatesToggle" onchange="toggleAutoUpdates()" style="opacity: 0; width: 0; height: 0;">
+                            <span id="toggleSlider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(239, 68, 68, 0.5); transition: 0.3s; border-radius: 26px;"></span>
+                            <span id="toggleKnob" style="position: absolute; content: ''; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%;"></span>
+                        </div>
+                        <span style="font-weight: 500;">Auto-Updates</span>
+                        <span id="autoUpdatesStatus" style="color: #cbd5e1; font-size: 0.875rem;">(Loading...)</span>
+                    </label>
+                </div>
+
+                <div id="updateStatus" style="padding: 1rem; border-radius: 8px; background: rgba(255, 255, 255, 0.05); display: none;">
+                    <span id="updateMessage"></span>
+                </div>
+
+                <button class="btn btn-primary" onclick="manualUpdate()" id="manualUpdateBtn" style="margin-top: 1rem;">
+                    Install Latest Update
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let typing = false;
+        let typingTimeout;
+
+        function startTyping() {
+            typing = true;
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => typing = false, 2000);
+        }
+
+        function updateConfig(data) {
+            if (data && !typing) {
+                document.getElementById('hysteresis').value = parseFloat(data.hysteresis).toFixed(1);
+                document.getElementById('minRunTime').value = parseFloat(data.minRunTime).toFixed(1);
+                document.getElementById('minStopTime').value = data.minStopTime;
+                document.getElementById('minZoneSwitchTime').value = data.minZoneSwitchTime;
+                document.getElementById('maxRunTime').value = data.maxRunTime;
+                document.getElementById('tempOffset').value = data.tempOffset;
+            } else if (!data) {
+                // Send updated config to server
+                const configData = {
+                    hysteresis: parseFloat(document.getElementById('hysteresis').value),
+                    minRunTime: parseFloat(document.getElementById('minRunTime').value),
+                    minStopTime: parseFloat(document.getElementById('minStopTime').value),
+                    minZoneSwitchTime: parseFloat(document.getElementById('minZoneSwitchTime').value),
+                    maxRunTime: parseFloat(document.getElementById('maxRunTime').value),
+                    tempOffset: parseFloat(document.getElementById('tempOffset').value)
+                };
+
+                fetch('/api/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(configData)
+                }).catch(error => console.error('Error updating config:', error));
+            }
+        }
+
+        // Add typing detection to all inputs
+        window.addEventListener('load', () => {
+            document.querySelectorAll('select').forEach(el => {
+                el.addEventListener('input', startTyping);
+                el.addEventListener('change', startTyping);
+            });
+        });
+
+        // Initial load
+        fetch('/api/config')
+            .then(response => response.json())
+            .then(data => updateConfig(data))
+            .catch(error => console.error('Error fetching config:', error));
+
+        // Copy IP address to clipboard
+        function copyIP() {
+            const ipText = document.getElementById('ipAddress').textContent;
+            if (ipText && ipText !== '-') {
+                navigator.clipboard.writeText('http://' + ipText).then(() => {
+                    alert('IP address copied to clipboard: http://' + ipText);
+                }).catch(err => {
+                    // Fallback for older browsers
+                    const tempInput = document.createElement('input');
+                    tempInput.value = 'http://' + ipText;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    alert('IP address copied to clipboard: http://' + ipText);
+                });
+            }
+        }
+
+        // WiFi Status Update
+        function updateWiFiStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    const statusEl = document.getElementById('currentStatus');
+                    const ssidEl = document.getElementById('connectedSSID');
+                    const ipEl = document.getElementById('ipAddress');
+                    const ipLink = document.getElementById('ipAddressLink');
+
+                    if (data.wifiConnected) {
+                        statusEl.textContent = '✓ Connected';
+                        statusEl.style.color = '#4ade80';
+                        ssidEl.textContent = data.wifiSSID || 'N/A';
+                        ipEl.textContent = data.wifiIP || 'N/A';
+                        ipLink.href = 'http://' + data.wifiIP;
+                        ipLink.onclick = null; // Enable clicking
+                    } else {
+                        statusEl.textContent = '✗ Not Connected (AP Mode Only)';
+                        statusEl.style.color = '#f59e0b';
+                        ssidEl.textContent = '-';
+                        ipEl.textContent = data.apIP || 'N/A';
+                        ipLink.href = 'http://' + data.apIP;
+                        ipLink.onclick = null; // Enable clicking
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching WiFi status:', error);
+                    document.getElementById('currentStatus').textContent = 'Error loading status';
+                });
+        }
+
+        // Scan for WiFi networks
+        function scanNetworks() {
+            const btn = document.getElementById('scanBtn');
+            const btnText = document.getElementById('scanBtnText');
+            const originalText = btnText.textContent;
+            
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="loader"></span> Scanning...';
+
+            fetch('/api/wifi/scan')
+                .then(response => response.json())
+                .then(networks => {
+                    const select = document.getElementById('networkSelect');
+                    select.innerHTML = '<option value="">-- Select Network --</option>';
+
+                    // Sort by signal strength
+                    networks.sort((a, b) => b.quality - a.quality);
+
+                    networks.forEach(network => {
+                        const option = document.createElement('option');
+                        option.value = network.ssid;
+                        option.dataset.encryption = network.encryption;
+                        
+                        // Create signal strength indicator
+                        let signalBars = '';
+                        const numBars = Math.ceil(network.quality / 25);
+                        let barClass = 'weak';
+                        if (network.quality >= 70) barClass = 'strong';
+                        else if (network.quality >= 40) barClass = 'medium';
+                        
+                        for (let i = 0; i < 4; i++) {
+                            if (i < numBars) {
+                                signalBars = '█' + signalBars;
+                            } else {
+                                signalBars = '░' + signalBars;
+                            }
+                        }
+
+                        option.textContent = `${signalBars} ${network.ssid} (${network.quality}%) ${network.encryption === 'Open' ? '🔓' : '🔒'}`;
+                        select.appendChild(option);
+                    });
+
+                    document.getElementById('networkList').style.display = 'block';
+                    btn.disabled = false;
+                    btnText.textContent = originalText;
+                })
+                .catch(error => {
+                    console.error('Error scanning networks:', error);
+                    alert('Failed to scan networks. Please try again.');
+                    btn.disabled = false;
+                    btnText.textContent = originalText;
+                });
+        }
+
+        // Select network from dropdown
+        function selectNetwork() {
+            const select = document.getElementById('networkSelect');
+            const selectedSSID = select.value;
+            
+            if (selectedSSID) {
+                document.getElementById('wifiSsid').value = selectedSSID;
+                
+                // Focus password field
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption.dataset.encryption !== 'Open') {
+                    document.getElementById('wifiPassword').focus();
+                }
+            }
+        }
+
+        // Save WiFi configuration
+        function saveWiFiConfig() {
+            const ssid = document.getElementById('wifiSsid').value.trim();
+            const password = document.getElementById('wifiPassword').value;
+
+            if (!ssid) {
+                alert('Please enter a WiFi SSID');
+                return;
+            }
+
+            const wifiConfig = {
+                ssid: ssid,
+                password: password
+            };
+
+            fetch('/api/wifi/config', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(wifiConfig)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('WiFi credentials saved! The controller will attempt to connect to the network.\n\nNote: If connection fails, you can still access the controller via the AP mode.');
+                    // Update status after a few seconds
+                    setTimeout(updateWiFiStatus, 5000);
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to save WiFi settings'));
+                }
+            })
+            .catch(error => {
+                console.error('Error saving WiFi config:', error);
+                alert('Failed to save WiFi settings. Please try again.');
+            });
+        }
+
+        // Multi-network management
+        let configuredNetworksData = [];
+        let draggedElement = null;
+
+        // Load configured networks
+        function loadConfiguredNetworks() {
+            fetch('/api/wifi/networks')
+                .then(response => response.json())
+                .then(data => {
+                    configuredNetworksData = data.networks || [];
+                    renderConfiguredNetworks();
+                })
+                .catch(error => {
+                    console.error('Error loading configured networks:', error);
+                });
+        }
+
+        // Render configured networks
+        function renderConfiguredNetworks() {
+            const container = document.getElementById('configuredNetworks');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 5; i++) {
+                const network = configuredNetworksData[i];
+                const card = document.createElement('div');
+                
+                if (network && network.ssid) {
+                    card.className = 'network-card';
+                    card.draggable = true;
+                    card.dataset.index = i;
+                    
+                    card.innerHTML = `
+                        <span class="drag-handle">☰</span>
+                        <div class="network-info">
+                            <span class="network-priority">${i + 1}</span>
+                            <div class="network-details">
+                                <div class="network-ssid">🔒 ${network.ssid}</div>
+                                <div class="network-status">Password: ${network.password === '********' ? 'Set' : 'Not set'}</div>
+                            </div>
+                        </div>
+                        <div class="network-actions">
+                            <button class="btn btn-small" onclick="removeNetwork(${i})">Remove</button>
+                        </div>
+                    `;
+
+                    // Drag events
+                    card.addEventListener('dragstart', handleDragStart);
+                    card.addEventListener('dragover', handleDragOver);
+                    card.addEventListener('drop', handleDrop);
+                    card.addEventListener('dragend', handleDragEnd);
+                } else {
+                    card.className = 'network-card empty-slot';
+                    card.innerHTML = `
+                        <div class="network-info">
+                            <span class="network-priority">${i + 1}</span>
+                            <div class="network-details">
+                                <div class="network-ssid" style="color: rgba(255, 255, 255, 0.3);">Empty Slot</div>
+                                <div class="network-status">Click "Add Network" below to configure</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.appendChild(card);
+            }
+        }
+
+        // Drag and drop handlers
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            if (draggedElement !== this && !this.classList.contains('empty-slot')) {
+                const draggedIndex = parseInt(draggedElement.dataset.index);
+                const droppedIndex = parseInt(this.dataset.index);
+
+                // Swap networks in the array
+                const temp = configuredNetworksData[draggedIndex];
+                configuredNetworksData[draggedIndex] = configuredNetworksData[droppedIndex];
+                configuredNetworksData[droppedIndex] = temp;
+
+                renderConfiguredNetworks();
+            }
+
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        // Add network to the list
+        function addNetwork() {
+            const ssid = document.getElementById('wifiSsid').value.trim();
+            const password = document.getElementById('wifiPassword').value;
+
+            if (!ssid) {
+                alert('Please enter a WiFi SSID');
+                return;
+            }
+
+            // Check if network already exists
+            const exists = configuredNetworksData.some(net => net && net.ssid === ssid);
+            if (exists) {
+                alert('This network is already configured!');
+                return;
+            }
+
+            // Find first empty slot
+            let emptySlot = -1;
+            for (let i = 0; i < 5; i++) {
+                if (!configuredNetworksData[i] || !configuredNetworksData[i].ssid) {
+                    emptySlot = i;
+                    break;
+                }
+            }
+
+            if (emptySlot === -1) {
+                alert('Maximum 5 networks can be configured. Please remove one first.');
+                return;
+            }
+
+            // Add to configured networks
+            configuredNetworksData[emptySlot] = {
+                id: emptySlot,
+                ssid: ssid,
+                password: password,
+                enabled: true,
+                priority: emptySlot + 1
+            };
+
+            // Clear input fields
+            document.getElementById('wifiSsid').value = '';
+            document.getElementById('wifiPassword').value = '';
+
+            // Re-render
+            renderConfiguredNetworks();
+
+            alert('Network added! Click "Save All Changes" to apply.');
+        }
+
+        // Remove network
+        function removeNetwork(index) {
+            if (confirm(`Remove network "${configuredNetworksData[index].ssid}"?`)) {
+                // Shift all networks down
+                for (let i = index; i < 4; i++) {
+                    configuredNetworksData[i] = configuredNetworksData[i + 1] || { id: i, ssid: '', password: '', enabled: true, priority: i + 1 };
+                }
+                configuredNetworksData[4] = { id: 4, ssid: '', password: '', enabled: true, priority: 5 };
+
+                renderConfiguredNetworks();
+                alert('Network removed! Click "Save All Changes" to apply.');
+            }
+        }
+
+        // Save all networks to controller
+        function saveAllNetworks() {
+            // Build networks array (only non-empty ones)
+            const networks = [];
+            for (let i = 0; i < 5; i++) {
+                if (configuredNetworksData[i] && configuredNetworksData[i].ssid) {
+                    networks.push({
+                        ssid: configuredNetworksData[i].ssid,
+                        password: configuredNetworksData[i].password === '********' ? '' : configuredNetworksData[i].password
+                    });
+                }
+            }
+
+            if (networks.length === 0) {
+                alert('No networks to save!');
+                return;
+            }
+
+            const wifiConfig = {
+                networks: networks
+            };
+
+            fetch('/api/wifi/config', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(wifiConfig)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`${networks.length} network(s) saved! The controller will attempt to connect in priority order.\n\nNote: If connection fails, you can still access via AP mode.`);
+                    // Reload networks after save
+                    setTimeout(() => {
+                        loadConfiguredNetworks();
+                        updateWiFiStatus();
+                    }, 2000);
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to save WiFi settings'));
+                }
+            })
+            .catch(error => {
+                console.error('Error saving WiFi config:', error);
+                alert('Failed to save WiFi settings. Please try again.');
+            });
+        }
+
+        // Firmware OTA functions
+        function loadOTAStatus() {
+            fetch('/api/ota/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('currentVersion').textContent = data.currentVersion;
+                    document.getElementById('lastChecked').textContent = data.lastChecked > 0 ?
+                        new Date(data.lastChecked * 1000).toLocaleString() : 'Never';
+                    
+                    // Update toggle state
+                    const toggle = document.getElementById('autoUpdatesToggle');
+                    const slider = document.getElementById('toggleSlider');
+                    const knob = document.getElementById('toggleKnob');
+                    const statusText = document.getElementById('autoUpdatesStatus');
+                    
+                    toggle.checked = data.autoUpdatesEnabled;
+                    if (data.autoUpdatesEnabled) {
+                        slider.style.backgroundColor = 'rgba(34, 197, 94, 0.5)';
+                        knob.style.transform = 'translateX(24px)';
+                        statusText.textContent = '(Enabled)';
+                        statusText.style.color = '#4ade80';
+                    } else {
+                        slider.style.backgroundColor = 'rgba(239, 68, 68, 0.5)';
+                        knob.style.transform = 'translateX(0)';
+                        statusText.textContent = '(Disabled)';
+                        statusText.style.color = '#f87171';
+                    }
+
+                    if (data.installedVersion && data.installedVersion !== data.currentVersion) {
+                        document.getElementById('currentVersion').textContent +=
+                            ` (${data.installedVersion} installed)`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading OTA status:', error);
+                    document.getElementById('currentVersion').textContent = 'Error loading';
+                });
+        }
+
+        function toggleAutoUpdates() {
+            const toggle = document.getElementById('autoUpdatesToggle');
+            const slider = document.getElementById('toggleSlider');
+            const knob = document.getElementById('toggleKnob');
+            const statusText = document.getElementById('autoUpdatesStatus');
+            const enabled = toggle.checked;
+
+            // Optimistically update UI
+            if (enabled) {
+                slider.style.backgroundColor = 'rgba(34, 197, 94, 0.5)';
+                knob.style.transform = 'translateX(24px)';
+                statusText.textContent = '(Saving...)';
+            } else {
+                slider.style.backgroundColor = 'rgba(239, 68, 68, 0.5)';
+                knob.style.transform = 'translateX(0)';
+                statusText.textContent = '(Saving...)';
+            }
+
+            fetch('/api/ota/auto-updates', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({enabled: enabled})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusText.textContent = data.autoUpdatesEnabled ? '(Enabled)' : '(Disabled)';
+                    statusText.style.color = data.autoUpdatesEnabled ? '#4ade80' : '#f87171';
+                } else {
+                    // Revert on failure
+                    toggle.checked = !enabled;
+                    loadOTAStatus();
+                    alert('Failed to update auto-updates setting');
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling auto-updates:', error);
+                // Revert on error
+                toggle.checked = !enabled;
+                loadOTAStatus();
+                alert('Error updating auto-updates setting');
+            });
+        }
+
+        function checkForUpdates() {
+            const btn = document.getElementById('checkUpdateBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Checking...';
+
+            fetch('/api/ota/update', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const statusDiv = document.getElementById('updateStatus');
+                const messageSpan = document.getElementById('updateMessage');
+
+                if (data.success) {
+                    messageSpan.textContent = `✅ Update initiated: ${data.message}`;
+                    statusDiv.style.borderLeft = '4px solid #22c55e';
+                    statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
+                } else {
+                    messageSpan.textContent = `ℹ️ ${data.message}`;
+                    statusDiv.style.borderLeft = '4px solid #3b82f6';
+                    statusDiv.style.background = 'rgba(59, 130, 246, 0.1)';
+                }
+
+                statusDiv.style.display = 'block';
+                loadOTAStatus(); // Refresh status
+
+                // Hide status after 10 seconds
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 10000);
+            })
+            .catch(error => {
+                console.error('Error checking for updates:', error);
+                const statusDiv = document.getElementById('updateStatus');
+                const messageSpan = document.getElementById('updateMessage');
+                messageSpan.textContent = '❌ Error checking for updates';
+                statusDiv.style.borderLeft = '4px solid #ef4444';
+                statusDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+                statusDiv.style.display = 'block';
+
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                // Refresh OTA status regardless of result
+                setTimeout(loadOTAStatus, 1000);
+            });
+        }
+
+        function manualUpdate() {
+            if (confirm('Are you sure you want to manually download and install the latest firmware update?\n\nThis will take several minutes and the device will restart automatically.')) {
+                const btn = document.getElementById('manualUpdateBtn');
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Updating...';
+
+                fetch('/api/ota/update', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`✅ ${data.message}\n\nThe device will begin updating and restart automatically. Please wait for it to come back online.`);
+                        // Show updating status
+                        btn.textContent = 'Updating...';
+                        setTimeout(() => {
+                            if (btn.disabled) { // Still disabled means update is in progress
+                                alert('Update in progress. The device will restart when complete.');
+                            }
+                        }, 10000);
+                    } else {
+                        alert(`ℹ️ No update available: ${data.message}`);
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error starting manual update:', error);
+                    alert('❌ Error starting update. Please try again.');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                });
+            }
+        }
+
+        // NTC Calibration functions
+        function updateCalibrationStatus() {
+            fetch('/api/calibration/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('isCalibrated').textContent = data.ntcCalibrated ? 'Active' : 'Not Active';
+
+                    if (data.ntcCalibrated) {
+                        document.getElementById('calStatusText').textContent = 'Calibrated with calculated beta';
+                        document.getElementById('calibrationDetails').style.display = 'block';
+                        document.getElementById('betaValue').textContent = data.customBeta ? data.customBeta.toFixed(1) : '-';
+                        document.getElementById('nominalTemp').textContent = data.nominalTemp ? data.nominalTemp.toFixed(1) : '-';
+                        document.getElementById('nominalResistance').textContent = data.nominalResistance ? data.nominalResistance.toFixed(0) : '-';
+                    } else {
+                        document.getElementById('calStatusText').textContent = 'Using default calibration';
+                        document.getElementById('calibrationDetails').style.display = 'none';
+                    }
+
+                    // Update point info displays
+                    if (data.point1) {
+                        document.getElementById('point1Info').style.display = 'block';
+                        document.getElementById('point1RecordedTemp').textContent = data.point1.temp.toFixed(1);
+                        document.getElementById('point1RLeft').textContent = data.point1.resistanceLeft.toFixed(1);
+                        document.getElementById('point1RRight').textContent = data.point1.resistanceRight.toFixed(1);
+                        document.getElementById('point1Temp').value = data.point1.temp.toFixed(1);
+                    } else {
+                        document.getElementById('point1Info').style.display = 'none';
+                    }
+
+                    if (data.point2) {
+                        document.getElementById('point2Info').style.display = 'block';
+                        document.getElementById('point2RecordedTemp').textContent = data.point2.temp.toFixed(1);
+                        document.getElementById('point2RLeft').textContent = data.point2.resistanceLeft.toFixed(1);
+                        document.getElementById('point2RRight').textContent = data.point2.resistanceRight.toFixed(1);
+                        document.getElementById('point2Temp').textContent = data.point2.temp.toFixed(1);
+                    } else {
+                        document.getElementById('point2Info').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading calibration status:', error);
+                    document.getElementById('calStatusText').textContent = 'Error loading status';
+                });
+        }
+
+        function setCalibrationPoint(point) {
+            const tempInput = document.getElementById(point === 1 ? 'point1Temp' : 'point2Temp');
+            const actualTemp = parseFloat(tempInput.value);
+
+            if (isNaN(actualTemp)) {
+                alert(`Please enter a valid temperature for Point ${point}`);
+                return;
+            }
+
+            if (point === 2) {
+                // Verify point 1 is set
+                const point1Temp = document.getElementById('point1Temp').value;
+                if (!point1Temp || isNaN(parseFloat(point1Temp))) {
+                    alert('Please set Point 1 first');
+                    return;
+                }
+
+                // Check temperature difference is reasonable
+                const point1Val = parseFloat(point1Temp);
+                if (Math.abs(actualTemp - point1Val) < 10) {
+                    alert('Point 2 should be at least 10°C different from Point 1 for accurate calibration');
+                    return;
+                }
+            }
+
+            const btn = document.getElementById(point === 1 ? 'point1Btn' : 'point2Btn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = `Setting Point ${point}...`;
+
+            fetch(`/api/calibration/point${point}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({actualTemp: actualTemp})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (point === 2 && data.calibrated) {
+                        alert(`Calibration completed!\n\nCalculated Beta: ${data.beta}\nNominal Temp: ${data.nominalTemp}°C\nNominal Resistance: ${data.nominalResistance} ohms`);
+                    } else {
+                        alert(`Point ${point} set successfully!\nResistance recorded: L:${data.resistanceLeft.toFixed(1)} R:${data.resistanceRight.toFixed(1)} ohms`);
+                    }
+                    updateCalibrationStatus();
+                } else {
+                    alert('Failed to set calibration point');
+                }
+            })
+            .catch(error => {
+                console.error('Error setting calibration point:', error);
+                alert('Error setting calibration point');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            });
+        }
+
+        function resetCalibration() {
+            if (confirm('Reset all calibration data to defaults? This will use the standard NTC constants.')) {
+                fetch('/api/calibration/reset', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Calibration reset to defaults');
+                        updateCalibrationStatus();
+                        document.getElementById('point1Temp').value = '';
+                        document.getElementById('point2Temp').value = '';
+                    } else {
+                        alert('Failed to reset calibration');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error resetting calibration:', error);
+                    alert('Error resetting calibration');
+                });
+            }
+        }
+
+        // Load WiFi status on page load
+        window.addEventListener('load', () => {
+            updateWiFiStatus();
+            loadConfiguredNetworks();
+            loadOTAStatus();
+            updateCalibrationStatus();
+            // Update WiFi status every 10 seconds
+            setInterval(updateWiFiStatus, 10000);
+            // Update OTA status every 30 seconds
+            setInterval(loadOTAStatus, 30000);
+            // Update calibration status every 15 seconds
+            setInterval(updateCalibrationStatus, 15000);
+        });
+    </script>
+</body>
+</html>
+
+)====" ;
 
 #endif // HTML_SETTINGS_H
