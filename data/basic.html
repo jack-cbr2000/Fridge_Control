@@ -372,10 +372,10 @@ body {
             Using potentiometer on pin 33 to simulate temperatures. Turn potentiometer to change temperature range.
         </div>
 
-        <div class="zones-grid">
+        <div class="zones-grid" id="zonesGrid">
             <div class="card zone-card" id="leftZone">
                 <div class="zone-header">
-                    <h3 class="zone-title">Left Zone</h3>
+                    <h3 class="zone-title" id="leftZoneTitle">Left Zone</h3>
                     <span class="zone-status" id="leftStatus">Idle</span>
                 </div>
 
@@ -386,7 +386,7 @@ body {
 
                 <div class="controls-grid">
                     <div class="control-group">
-                        <label class="control-label">Setpoint (°C)</label>
+                        <label class="control-label" id="leftSetpointLabel">Setpoint (°C)</label>
                         <select class="control-select" id="leftSetpoint" onchange="updateConfig()">
                             <option value="-20">-20</option>
                             <option value="-19">-19</option>
@@ -421,7 +421,7 @@ body {
                             <option value="10">10</option>
                         </select>
                     </div>
-                    <div class="control-group">
+                    <div class="control-group" id="leftEnabledGroup">
                         <label class="control-label">Zone Enabled</label>
                         <select class="control-select" id="leftEnabled" onchange="updateConfig()">
                             <option value="true">Yes</option>
@@ -582,6 +582,30 @@ body {
                 document.getElementById('rightSetpoint').value = data.rightSetpoint;
                 document.getElementById('leftEnabled').value = data.leftEnabled;
                 document.getElementById('rightEnabled').value = data.rightEnabled;
+
+                // Handle single zone mode UI changes
+                const singleZoneMode = data.singleZoneMode;
+                const rightZone = document.getElementById('rightZone');
+                const zonesGrid = document.getElementById('zonesGrid');
+                const leftZoneTitle = document.getElementById('leftZoneTitle');
+                const leftSetpointLabel = document.getElementById('leftSetpointLabel');
+                const leftEnabledGroup = document.getElementById('leftEnabledGroup');
+
+                if (singleZoneMode) {
+                    // Single zone mode: hide right zone, change left zone title
+                    rightZone.style.display = 'none';
+                    zonesGrid.style.gridTemplateColumns = '1fr';
+                    leftZoneTitle.textContent = 'Zone';
+                    leftSetpointLabel.textContent = 'Setpoint (°C)';
+                    leftEnabledGroup.style.display = 'none';
+                } else {
+                    // Dual zone mode: show both zones
+                    rightZone.style.display = 'block';
+                    zonesGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(300px, 1fr))';
+                    leftZoneTitle.textContent = 'Left Zone';
+                    leftSetpointLabel.textContent = 'Setpoint (°C)';
+                    leftEnabledGroup.style.display = 'block';
+                }
             } else if (!data) {
                 // Send updated config to server
                 const configData = {

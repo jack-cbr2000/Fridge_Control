@@ -13,7 +13,7 @@
 // GitHub OTA Configuration - Update these for your repository!
 #define GITHUB_OWNER "jack-cbr2000"
 #define GITHUB_REPO "Fridge_Control"
-#define CURRENT_VERSION "1.0.0"
+#define CURRENT_VERSION "1.0.7"
 #define CHECK_INTERVAL_MINUTES 60  // Check every hour
 
 // GitHub OTA variables
@@ -65,11 +65,7 @@ int logCount = 0; // Number of valid entries
 #define SOLENOID_PIN 2
 #define LED_PIN 5
 
-// NTC thermistor constants (10K NTC)
-#define THERMISTOR_NOMINAL 2500
-#define TEMPERATURE_NOMINAL 25
-#define BCOEFFICIENT 5000
-#define SERIES_RESISTOR 2500
+// NTC thermistor constants (10K NTC) - now configurable via web UI and stored in EEPROM
 
 // WiFi Network structure
 struct WiFiNetwork {
@@ -91,6 +87,15 @@ struct Config {
   bool leftEnabled = true;
   bool rightEnabled = true;
   WiFiNetwork wifiNetworks[5];    // 5 WiFi network slots
+
+  // NTC thermistor constants (10K NTC)
+  float thermistorNominal = 2500;
+  float temperatureNominal = 25;
+  float bCoefficient = 5000;
+  float seriesResistor = 2500;
+
+  // Single zone mode (true = single zone, false = dual zone)
+  bool singleZoneMode = false;
 
   // Backward compatibility - single network fields (now deprecated)
   char old_ssid[32] = "";
@@ -700,15 +705,15 @@ void loop() {
 
 float readNTC(int pin) {
   int reading = analogRead(pin);
-  float resistance = SERIES_RESISTOR * (4095.0 / reading - 1.0);
+  float resistance = config.seriesResistor * (4095.0 / reading - 1.0);
 
   // Debug output
   Serial.printf("NTC Pin %d: ADC=%d, Resistance=%.1f ohm, ", pin, reading, resistance);
 
-  float steinhart = resistance / THERMISTOR_NOMINAL;
+  float steinhart = resistance / config.thermistorNominal;
   steinhart = log(steinhart);
-  steinhart /= BCOEFFICIENT;
-  steinhart += 1.0 / (TEMPERATURE_NOMINAL + 273.15);
+  steinhart /= config.bCoefficient;
+  steinhart += 1.0 / (config.temperatureNominal + 273.15);
   steinhart = 1.0 / steinhart;
   steinhart -= 273.15;
 
@@ -768,7 +773,7 @@ void readTemperatures() {
 
 void controlLogic() {
   unsigned long now = millis();
-  
+
   if (!state.systemEnabled) {
     if (state.compressorOn) {
       stopCompressor();
@@ -776,79 +781,122 @@ void controlLogic() {
     state.status = "System Disabled";
     return;
   }
-  
-  // Check if zones need cooling
-  bool leftNeedsCooling = config.leftEnabled && 
-                         (state.leftTemp > config.leftSetpoint + config.hysteresis);
-  bool rightNeedsCooling = config.rightEnabled && 
-                          (state.rightTemp > config.rightSetpoint + config.hysteresis);
-  
-  // Check if zones are satisfied
-  bool leftSatisfied = !config.leftEnabled || 
-                      (state.leftTemp <= config.leftSetpoint - config.hysteresis);
-  bool rightSatisfied = !config.rightEnabled || 
-                       (state.rightTemp <= config.rightSetpoint - config.hysteresis);
-  
-  // Determine which zone to cool
-  int targetZone = -1;
-  if (leftNeedsCooling && rightNeedsCooling) {
-    // Both need cooling - choose the one that's warmer
-    targetZone = (state.leftTemp > state.rightTemp) ? 0 : 1;
-  } else if (leftNeedsCooling) {
-    targetZone = 0;
-  } else if (rightNeedsCooling) {
-    targetZone = 1;
-  }
-  
-  // Compressor control logic
-  if (state.compressorOn) {
-    // Compressor is running
-    bool shouldStop = false;
-    
-    // Check max run time
-    if (now - state.lastCompressorStart > config.maxRunTime * 60000) {
-      shouldStop = true;
-      state.status = "Max run time reached";
-    }
-    
-    // Check if current zone is satisfied
-    if (state.currentZone == 0 && leftSatisfied) {
-      shouldStop = true;
-      state.status = "Left zone satisfied";
-    } else if (state.currentZone == 1 && rightSatisfied) {
-      shouldStop = true;
-      state.status = "Right zone satisfied";
-    }
-    
-    // Check minimum run time before allowing stop
-    if (shouldStop && (now - state.lastCompressorStart >= config.minRunTime * 60000)) {
-      stopCompressor();
-    }
-    
-    // Check if we need to switch zones
-    if (!shouldStop && targetZone != -1 && targetZone != state.currentZone) {
-      if (now - state.lastZoneSwitch >= config.minZoneSwitchTime * 60000) {
-        switchZone(targetZone);
+
+  if (config.singleZoneMode) {
+    // Single zone mode - only use left zone
+    bool zoneNeedsCooling = config.leftEnabled &&
+                           (state.leftTemp > config.leftSetpoint + config.hysteresis);
+    bool zoneSatisfied = !config.leftEnabled ||
+                        (state.leftTemp <= config.leftSetpoint - config.hysteresis);
+
+    if (state.compressorOn) {
+      // Compressor is running
+      bool shouldStop = false;
+
+      // Check max run time
+      if (now - state.lastCompressorStart > config.maxRunTime * 60000) {
+        shouldStop = true;
+        state.status = "Max run time reached";
+      }
+
+      // Check if zone is satisfied
+      if (zoneSatisfied) {
+        shouldStop = true;
+        state.status = "Zone satisfied";
+      }
+
+      // Check minimum run time before allowing stop
+      if (shouldStop && (now - state.lastCompressorStart >= config.minRunTime * 60000)) {
+        stopCompressor();
+      }
+    } else {
+      // Compressor is off
+      if (zoneNeedsCooling) {
+        // Check minimum stop time
+        if (now - state.lastCompressorStop >= config.minStopTime * 60000) {
+          startCompressor(0); // Always use zone 0 (left) in single mode
+        } else {
+          state.status = "Waiting for min stop time";
+        }
+      } else {
+        state.status = zoneSatisfied ? "Zone satisfied" : "Idle";
       }
     }
   } else {
-    // Compressor is off
-    if (targetZone != -1) {
-      // Check minimum stop time
-      if (now - state.lastCompressorStop >= config.minStopTime * 60000) {
-        startCompressor(targetZone);
-      } else {
-        state.status = "Waiting for min stop time";
+    // Dual zone mode - original logic
+    // Check if zones need cooling
+    bool leftNeedsCooling = config.leftEnabled &&
+                           (state.leftTemp > config.leftSetpoint + config.hysteresis);
+    bool rightNeedsCooling = config.rightEnabled &&
+                            (state.rightTemp > config.rightSetpoint + config.hysteresis);
+
+    // Check if zones are satisfied
+    bool leftSatisfied = !config.leftEnabled ||
+                        (state.leftTemp <= config.leftSetpoint - config.hysteresis);
+    bool rightSatisfied = !config.rightEnabled ||
+                         (state.rightTemp <= config.rightSetpoint - config.hysteresis);
+
+    // Determine which zone to cool
+    int targetZone = -1;
+    if (leftNeedsCooling && rightNeedsCooling) {
+      // Both need cooling - choose the one that's warmer
+      targetZone = (state.leftTemp > state.rightTemp) ? 0 : 1;
+    } else if (leftNeedsCooling) {
+      targetZone = 0;
+    } else if (rightNeedsCooling) {
+      targetZone = 1;
+    }
+
+    // Compressor control logic
+    if (state.compressorOn) {
+      // Compressor is running
+      bool shouldStop = false;
+
+      // Check max run time
+      if (now - state.lastCompressorStart > config.maxRunTime * 60000) {
+        shouldStop = true;
+        state.status = "Max run time reached";
+      }
+
+      // Check if current zone is satisfied
+      if (state.currentZone == 0 && leftSatisfied) {
+        shouldStop = true;
+        state.status = "Left zone satisfied";
+      } else if (state.currentZone == 1 && rightSatisfied) {
+        shouldStop = true;
+        state.status = "Right zone satisfied";
+      }
+
+      // Check minimum run time before allowing stop
+      if (shouldStop && (now - state.lastCompressorStart >= config.minRunTime * 60000)) {
+        stopCompressor();
+      }
+
+      // Check if we need to switch zones
+      if (!shouldStop && targetZone != -1 && targetZone != state.currentZone) {
+        if (now - state.lastZoneSwitch >= config.minZoneSwitchTime * 60000) {
+          switchZone(targetZone);
+        }
       }
     } else {
-      if (leftSatisfied && rightSatisfied) {
-        state.status = "Both zones satisfied";
-      } else if (leftSatisfied) {
-        state.status = "Left zone satisfied";
-      } else if (rightSatisfied) {
-        state.status = "Right zone satisfied";
+      // Compressor is off
+      if (targetZone != -1) {
+        // Check minimum stop time
+        if (now - state.lastCompressorStop >= config.minStopTime * 60000) {
+          startCompressor(targetZone);
+        } else {
+          state.status = "Waiting for min stop time";
+        }
       } else {
-        state.status = "Idle";
+        if (leftSatisfied && rightSatisfied) {
+          state.status = "Both zones satisfied";
+        } else if (leftSatisfied) {
+          state.status = "Left zone satisfied";
+        } else if (rightSatisfied) {
+          state.status = "Right zone satisfied";
+        } else {
+          state.status = "Idle";
+        }
       }
     }
   }
@@ -1310,6 +1358,11 @@ String getConfigJSON() {
   doc["tempOffset"] = config.tempOffset;
   doc["leftEnabled"] = config.leftEnabled;
   doc["rightEnabled"] = config.rightEnabled;
+  doc["thermistorNominal"] = config.thermistorNominal;
+  doc["temperatureNominal"] = config.temperatureNominal;
+  doc["bCoefficient"] = config.bCoefficient;
+  doc["seriesResistor"] = config.seriesResistor;
+  doc["singleZoneMode"] = config.singleZoneMode;
 
   String output;
   serializeJson(doc, output);
@@ -1332,6 +1385,11 @@ void updateConfig(String jsonStr) {
   if (doc.containsKey("tempOffset")) config.tempOffset = doc["tempOffset"];
   if (doc.containsKey("leftEnabled")) config.leftEnabled = doc["leftEnabled"];
   if (doc.containsKey("rightEnabled")) config.rightEnabled = doc["rightEnabled"];
+  if (doc.containsKey("thermistorNominal")) config.thermistorNominal = doc["thermistorNominal"];
+  if (doc.containsKey("temperatureNominal")) config.temperatureNominal = doc["temperatureNominal"];
+  if (doc.containsKey("bCoefficient")) config.bCoefficient = doc["bCoefficient"];
+  if (doc.containsKey("seriesResistor")) config.seriesResistor = doc["seriesResistor"];
+  if (doc.containsKey("singleZoneMode")) config.singleZoneMode = doc["singleZoneMode"];
 
   // WiFi config no longer handled here - managed by ESPWifiConfig library
 
@@ -1397,6 +1455,33 @@ void loadConfig() {
 
   if (config.rightEnabled != true && config.rightEnabled != false) {
     config.rightEnabled = true;
+    factoryDefaultsLoaded = true;
+  }
+
+  // Validate NTC thermistor constants
+  if (isnan(config.thermistorNominal) || config.thermistorNominal < 100 || config.thermistorNominal > 100000) {
+    config.thermistorNominal = 2500;
+    factoryDefaultsLoaded = true;
+  }
+
+  if (isnan(config.temperatureNominal) || config.temperatureNominal < -50 || config.temperatureNominal > 100) {
+    config.temperatureNominal = 25;
+    factoryDefaultsLoaded = true;
+  }
+
+  if (isnan(config.bCoefficient) || config.bCoefficient < 1000 || config.bCoefficient > 10000) {
+    config.bCoefficient = 5000;
+    factoryDefaultsLoaded = true;
+  }
+
+  if (isnan(config.seriesResistor) || config.seriesResistor < 100 || config.seriesResistor > 100000) {
+    config.seriesResistor = 2500;
+    factoryDefaultsLoaded = true;
+  }
+
+  // Validate single zone mode
+  if (config.singleZoneMode != true && config.singleZoneMode != false) {
+    config.singleZoneMode = false; // Default to dual zone
     factoryDefaultsLoaded = true;
   }
 

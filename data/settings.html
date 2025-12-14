@@ -429,6 +429,21 @@ body {
 
         <div class="advanced-settings" style="margin-top: 2rem;">
             <div class="advanced-header">
+                <h3 class="advanced-title">Operating Mode</h3>
+            </div>
+
+            <div class="advanced-grid">
+                <div class="control-group">
+                    <label class="control-label">
+                        <input type="checkbox" id="singleZoneMode" onchange="updateConfig()"> Single Zone Mode
+                    </label>
+                    <small style="color: #cbd5e1; font-size: 0.75rem; display: block; margin-top: 0.25rem;">
+                        Enable for single-zone fridges. Uses only left zone, hides dual-zone controls.
+                    </small>
+                </div>
+            </div>
+
+            <div class="advanced-header" style="margin-top: 2rem;">
                 <h3 class="advanced-title">Advanced Settings</h3>
             </div>
 
@@ -547,6 +562,26 @@ body {
                         <option value="5">5</option>
                     </select>
                 </div>
+
+                <div class="control-group">
+                    <label class="control-label">NTC Thermistor Nominal (Ω)</label>
+                    <input type="number" class="control-input" id="thermistorNominal" min="100" max="100000" step="1" onchange="updateConfig()">
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">NTC Temperature Nominal (°C)</label>
+                    <input type="number" class="control-input" id="temperatureNominal" min="-50" max="100" step="1" onchange="updateConfig()">
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">NTC B Coefficient</label>
+                    <input type="number" class="control-input" id="bCoefficient" min="1000" max="10000" step="1" onchange="updateConfig()">
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">NTC Series Resistor (Ω)</label>
+                    <input type="number" class="control-input" id="seriesResistor" min="100" max="100000" step="1" onchange="updateConfig()">
+                </div>
             </div>
         </div>
 
@@ -596,6 +631,11 @@ body {
                 document.getElementById('minZoneSwitchTime').value = data.minZoneSwitchTime;
                 document.getElementById('maxRunTime').value = data.maxRunTime;
                 document.getElementById('tempOffset').value = data.tempOffset;
+                document.getElementById('thermistorNominal').value = data.thermistorNominal;
+                document.getElementById('temperatureNominal').value = data.temperatureNominal;
+                document.getElementById('bCoefficient').value = data.bCoefficient;
+                document.getElementById('seriesResistor').value = data.seriesResistor;
+                document.getElementById('singleZoneMode').checked = data.singleZoneMode;
             } else if (!data) {
                 // Send updated config to server
                 const configData = {
@@ -604,7 +644,12 @@ body {
                     minStopTime: parseFloat(document.getElementById('minStopTime').value),
                     minZoneSwitchTime: parseFloat(document.getElementById('minZoneSwitchTime').value),
                     maxRunTime: parseFloat(document.getElementById('maxRunTime').value),
-                    tempOffset: parseFloat(document.getElementById('tempOffset').value)
+                    tempOffset: parseFloat(document.getElementById('tempOffset').value),
+                    thermistorNominal: parseInt(document.getElementById('thermistorNominal').value),
+                    temperatureNominal: parseInt(document.getElementById('temperatureNominal').value),
+                    bCoefficient: parseInt(document.getElementById('bCoefficient').value),
+                    seriesResistor: parseInt(document.getElementById('seriesResistor').value),
+                    singleZoneMode: document.getElementById('singleZoneMode').checked
                 };
 
                 fetch('/api/config', {
@@ -617,7 +662,7 @@ body {
 
         // Add typing detection to all inputs
         window.addEventListener('load', () => {
-            document.querySelectorAll('select').forEach(el => {
+            document.querySelectorAll('select, input').forEach(el => {
                 el.addEventListener('input', startTyping);
                 el.addEventListener('change', startTyping);
             });

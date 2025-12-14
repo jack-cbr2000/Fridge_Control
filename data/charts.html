@@ -282,11 +282,175 @@ body {
                 temperatureChart.destroy();
             }
 
-            temperatureChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
+            // Check if single zone mode
+            let datasets = [];
+            let chartTitle = 'Temperature History';
+
+            fetch('/api/config')
+                .then(response => response.json())
+                .then(config => {
+                    const singleZoneMode = config.singleZoneMode;
+
+                    if (singleZoneMode) {
+                        // Single zone mode: only show left zone data
+                        datasets = [
+                            {
+                                label: 'Zone Temperature (°C)',
+                                data: leftTemps,
+                                borderColor: 'rgba(59, 130, 246, 1)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 4
+                            },
+                            {
+                                label: 'Setpoint (°C)',
+                                data: leftSetpoints,
+                                borderColor: 'rgba(59, 130, 246, 0.5)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                tension: 0.1
+                            }
+                        ];
+                        chartTitle = 'Zone Temperature History';
+                    } else {
+                        // Dual zone mode: show both zones
+                        datasets = [
+                            {
+                                label: 'Left Zone Temperature (°C)',
+                                data: leftTemps,
+                                borderColor: 'rgba(59, 130, 246, 1)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 4
+                            },
+                            {
+                                label: 'Right Zone Temperature (°C)',
+                                data: rightTemps,
+                                borderColor: 'rgba(16, 185, 129, 1)',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 4
+                            },
+                            {
+                                label: 'Left Setpoint (°C)',
+                                data: leftSetpoints,
+                                borderColor: 'rgba(59, 130, 246, 0.5)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Right Setpoint (°C)',
+                                data: rightSetpoints,
+                                borderColor: 'rgba(16, 185, 129, 0.5)',
+                                backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                tension: 0.1
+                            }
+                        ];
+                        chartTitle = 'Temperature History';
+                    }
+
+                    // Create the chart
+                    temperatureChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: chartTitle,
+                                    color: '#ffffff',
+                                    font: {
+                                        size: 16,
+                                        weight: 'bold'
+                                    }
+                                },
+                                legend: {
+                                    labels: {
+                                        color: '#cbd5e1',
+                                        usePointStyle: true,
+                                        pointStyle: 'line'
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#ffffff',
+                                    bodyColor: '#ffffff',
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    display: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Time',
+                                        color: '#cbd5e1'
+                                    },
+                                    ticks: {
+                                        color: '#cbd5e1',
+                                        maxTicksLimit: 10
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                },
+                                y: {
+                                    display: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Temperature (°C)',
+                                        color: '#cbd5e1'
+                                    },
+                                    ticks: {
+                                        color: '#cbd5e1'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                }
+                            },
+                            elements: {
+                                point: {
+                                    hoverBorderWidth: 2
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error checking config for chart mode:', error);
+                    // Fallback to dual zone mode
+                    datasets = [
                         {
                             label: 'Left Zone Temperature (°C)',
                             data: leftTemps,
@@ -331,78 +495,85 @@ body {
                             pointRadius: 0,
                             tension: 0.1
                         }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Temperature History',
-                            color: '#ffffff',
-                            font: {
-                                size: 16,
-                                weight: 'bold'
-                            }
+                    ];
+
+                    temperatureChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: datasets
                         },
-                        legend: {
-                            labels: {
-                                color: '#cbd5e1',
-                                usePointStyle: true,
-                                pointStyle: 'line'
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Temperature History',
+                                    color: '#ffffff',
+                                    font: {
+                                        size: 16,
+                                        weight: 'bold'
+                                    }
+                                },
+                                legend: {
+                                    labels: {
+                                        color: '#cbd5e1',
+                                        usePointStyle: true,
+                                        pointStyle: 'line'
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#ffffff',
+                                    bodyColor: '#ffffff',
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    display: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Time',
+                                        color: '#cbd5e1'
+                                    },
+                                    ticks: {
+                                        color: '#cbd5e1',
+                                        maxTicksLimit: 10
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                },
+                                y: {
+                                    display: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Temperature (°C)',
+                                        color: '#cbd5e1'
+                                    },
+                                    ticks: {
+                                        color: '#cbd5e1'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                }
+                            },
+                            elements: {
+                                point: {
+                                    hoverBorderWidth: 2
+                                }
                             }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#ffffff',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            borderWidth: 1
                         }
-                    },
-                    scales: {
-                        x: {
-                            display: true,
-                            title: {
-                                display: true,
-                                text: 'Time',
-                                color: '#cbd5e1'
-                            },
-                            ticks: {
-                                color: '#cbd5e1',
-                                maxTicksLimit: 10
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        },
-                        y: {
-                            display: true,
-                            title: {
-                                display: true,
-                                text: 'Temperature (°C)',
-                                color: '#cbd5e1'
-                            },
-                            ticks: {
-                                color: '#cbd5e1'
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        }
-                    },
-                    elements: {
-                        point: {
-                            hoverBorderWidth: 2
-                        }
-                    }
-                }
-            });
+                    });
+                });
         }
 
         // Initial load
